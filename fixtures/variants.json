@@ -1,0 +1,93 @@
+{
+  "message_rule": {
+    "description": "Прізвище студента великими латинськими літерами A–Z (лаб. 1–3, запис у mock USB лаб. 3). Без пробілів; однакове повідомлення в Wokwi і host.",
+    "encoding": "ascii або utf-8 (латиниця); cp1251 також для A–Z",
+    "packet_suffix": "\\r",
+    "short_surname_min_chars": 4,
+    "short_surname_note": "якщо коротше — додати ім'я без пробілу (узгодити з викладачем)",
+    "oled_lab4": "для варіантів OLED — вивести те саме прізвище латиницею",
+    "example": "IVANOV"
+  },
+  "variants": [
+    {
+      "id": 1,
+      "baud": 9600,
+      "format": "8N1",
+      "sensor": "BME280",
+      "poll_ms": 500,
+      "mock_usb_name": "SanDisk Cruzer (Mass Storage)"
+    },
+    {
+      "id": 2,
+      "baud": 9600,
+      "format": "8N1",
+      "sensor": "BME280",
+      "poll_ms": 500,
+      "mock_usb_name": "Espressif USB JTAG/serial (CDC)"
+    },
+    {
+      "id": 3,
+      "baud": 19200,
+      "format": "8N1",
+      "sensor": "BME280",
+      "poll_ms": 1000,
+      "mock_usb_name": "Logitech USB Receiver"
+    },
+    {
+      "id": 4,
+      "baud": 19200,
+      "format": "8N1",
+      "sensor": "OLED",
+      "poll_ms": 500,
+      "mock_usb_name": "Intel Bluetooth (USB)"
+    },
+    {
+      "id": 5,
+      "baud": 9600,
+      "format": "7E1",
+      "sensor": "BME280",
+      "poll_ms": 200,
+      "mock_usb_name": "Linux Foundation 2.0 root hub"
+    },
+    {
+      "id": 6,
+      "baud": 9600,
+      "format": "8N1",
+      "sensor": "OLED",
+      "poll_ms": 1000,
+      "mock_usb_name": "SanDisk Cruzer (Mass Storage)"
+    },
+    {
+      "id": 7,
+      "baud": 38400,
+      "format": "8N1",
+      "sensor": "BME280",
+      "poll_ms": 500,
+      "mock_usb_name": "Espressif USB JTAG/serial (CDC)"
+    },
+    {
+      "id": 8,
+      "baud": 38400,
+      "format": "8N1",
+      "sensor": "BME280",
+      "poll_ms": 200,
+      "mock_usb_name": "Logitech USB Receiver"
+    },
+    {
+      "id": 9,
+      "baud": 9600,
+      "format": "8N2",
+      "sensor": "OLED",
+      "poll_ms": 500,
+      "mock_usb_name": "Intel Bluetooth (USB)"
+    },
+    {
+      "id": 10,
+      "baud": 19200,
+      "format": "8N1",
+      "sensor": "BME280",
+      "poll_ms": 1000,
+      "mock_usb_name": "Linux Foundation 2.0 root hub"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "devices": [
+    {
+      "vid": "046d",
+      "pid": "c52b",
+      "name": "Logitech USB Receiver",
+      "class": "HID",
+      "speed": "12 Mbps (Full Speed)",
+      "volume_label": null,
+      "drive_format": null,
+      "total_gb": null,
+      "free_gb": null
+    },
+    {
+      "vid": "0781",
+      "pid": "5567",
+      "name": "SanDisk Cruzer (Mass Storage)",
+      "class": "Mass Storage",
+      "speed": "480 Mbps (High Speed)",
+      "volume_label": "PPID_USB",
+      "drive_format": "FAT32",
+      "total_gb": 16.0,
+      "free_gb": 15.2
+    },
+    {
+      "vid": "303a",
+      "pid": "1001",
+      "name": "Espressif USB JTAG/serial (CDC)",
+      "class": "CDC",
+      "speed": "12 Mbps (Full Speed)",
+      "volume_label": null,
+      "drive_format": null,
+      "total_gb": null,
+      "free_gb": null
+    },
+    {
+      "vid": "1d6b",
+      "pid": "0002",
+      "name": "Linux Foundation 2.0 root hub",
+      "class": "Hub",
+      "speed": "480 Mbps (High Speed)",
+      "volume_label": null,
+      "drive_format": null,
+      "total_gb": null,
+      "free_gb": null
+    },
+    {
+      "vid": "8087",
+      "pid": "0026",
+      "name": "Intel Bluetooth (USB)",
+      "class": "Wireless",
+      "speed": "12 Mbps (Full Speed)",
+      "volume_label": null,
+      "drive_format": null,
+      "total_gb": null,
+      "free_gb": null
+    }
+  ]
+}
