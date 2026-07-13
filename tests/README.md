@@ -1,6 +1,6 @@
 # Tests
 
-Baseline regression tests for the PPID lab toolkit (11 cases). They verify UART message encoding, USB NRZI/bit stuffing, and USB OUT transaction building.
+Baseline regression tests for the PPID lab toolkit. They verify UART message encoding / optional device emu, USB NRZI/bit stuffing, and USB OUT transaction building.
 
 ## Run
 
@@ -13,7 +13,8 @@ python3 -m pytest tests/ -v
 
 | Module | Tests |
 |--------|-------|
-| `host/uart_host.py` | Message ends with `\r`, cp1251 roundtrip |
+| `host/uart_host.py` | Message ends with `\r`, cp1251 roundtrip, ACK verify helper |
+| `host/uart_device_emu.py` | ACK framing; pty Host↔Device exchange (Unix) |
 | `encoding/usb_nrzi.py` | Bit length, bit stuffing, NRZI levels |
 | `host/usb_transaction.py` | Token→Data→Handshake phases, PIDs, payload size |
 

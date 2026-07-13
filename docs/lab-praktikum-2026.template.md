@@ -14,7 +14,7 @@
 
 **Мета practicum** — опанування студентами технологій розроблення та дослідження програмних драйверів периферійних інтерфейсів: послідовного асинхронного **RS-232C / UART**, **USB (УПШ)**, синхронної шини **I²C**, а також інтеграції вузла моніторингу (capstone). Посібник призначений для студентів спеціалізації **КСМ** у рамках дисципліни PPID.
 
-**Умови виконання (2026).** Лабораторні працюють на **Python 3.11+** та симуляторі **Wokwi** (ESP32 MicroPython). Фізичне залізо (USB-UART, BME280) **не обов’язкове**; за замовчуванням — `loop://` та mock USB-пристрої.
+**Умови виконання (2026).** Лабораторні працюють на **Python 3.11+**; лаб. **4–5** — симулятор **Wokwi** (ESP32 MicroPython). Лаб. **1** — host + `uart_device_emu` на віртуальній парі (без Wokwi). Фізичне залізо (USB-UART, BME280) **не обов’язкове**; за замовчуванням — `loop://` (лише TX) та mock USB-пристрої.
 
 Практикум містить **5 лабораторних** у **трьох блоках**:
 
@@ -80,9 +80,9 @@
 | **pyserial** ≥ 3.5 | Послідовний порт (лаб. 1) |
 | **matplotlib** ≥ 3.11 | Діаграми UART/NRZI (лаб. 2), графік capstone (лаб. 5) |
 | **pytest** ≥ 9.1 | Перевірка модулів (лаб. 2–3), опційно |
-| **Wokwi** (браузер) | Симуляція ESP32 MicroPython (лаб. 1, 4, 5) |
-| **com0com** / **VSPD** (Windows) | Віртуальна пара COM (лаб. 1, опційно) |
-| **socat** (Linux/macOS) | Віртуальна пара псевдотерміналів (лаб. 1, опційно) |
+| **Wokwi** (браузер) | Симуляція ESP32 MicroPython (лаб. 4, 5) |
+| **com0com** / **VSPD** (Windows) | Віртуальна пара COM (лаб. 1) |
+| **socat** (Linux/macOS) | Альтернатива `uart_pty_pair` (лаб. 1) |
 | **draw.io** / diagrams.net | Опційно: пояснення на захисті (не обов’язково у звіті) |
 
 **Залежності Python (requirements.txt):**
@@ -130,13 +130,13 @@ python3 -m pytest tests/ -v        # опційно, якщо скопійова
 
 | Лаб | Артефакти звіту |
 |-----|-----------------|
-| 1 | TX: лог `uart_host` (`TX hex`); RX: скрін Wokwi (`--- verify ---`, LED, Logic Analyzer); `Verify: OK` |
-| 2 | 2 PNG: UART + NRZI для всього повідомлення; розрахунок часу UART |
-| 3 | Hex транзакції; скрін `usb_gui` (скан, властивості, запис); порівняння USB-A / USB-C |
+| 1 | TX+RX через віртуальну пару: логи `uart_host` + `uart_device_emu`; TXD/RXD/GND; ASCII першої літери; опційно `loop://` |
+| 2 | 2 PNG UART+NRZI; розрахунок часу; **посимвольний розбір** (start/data/parity?/stop + NRZI); місток ASCII → лаб. 3 |
+| 3 | Hex транзакції; скрін `usb_gui` + `cat` у temp; USB-A/C; **для макс. оцінки** — флешка (мітка/формат/розмір + `cat`) |
 | 4 | Адреса `i2c.scan()`; Serial Monitor; скрін Logic Analyzer SDA/SCL |
 | 5 | Serial log, CSV, графік `out.png`; діаграма компонентів з методички |
 
-## 1.4. Симулятор Wokwi (лаб. 1, 4, 5)
+## 1.4. Симулятор Wokwi (лаб. 4, 5)
 
 1. Відкрийте https://wokwi.com/projects/new/micropython-esp32
 2. У редакторі: **File → New file** — створіть `main.py`, вставте код з розділу **«Приклад програмних драйверів»** відповідного блоку.
@@ -144,11 +144,11 @@ python3 -m pytest tests/ -v        # опційно, якщо скопійова
 4. **Лаб. 4 і 5:** **`main.py`** та **`diagram.json`** — з папки лабораторії в репозиторії; **`bmp180.py`** — з [`wokwi/lib/bmp180.py`](../wokwi/lib/bmp180.py) (спільний драйвер; не Arduino Library Manager).
 5. Натисніть **▶ Start Simulation**.
 6. Відкрийте **Serial Monitor** (нижня панель) для обміну з ESP32.
-7. Для лаб. 1 і 4: на схемі вже є **Logic Analyzer** (`diagram.json` з методички). Під час симуляції на ньому зростає лічильник samples; після **Stop** браузер завантажить **`wokwi-logic.vcd`**. Хвилі SDA/SCL у Wokwi **не** показуються — їх переглядають у зовнішній програмі (див. нижче).
+7. Для **лаб. 4** (і 5): на схемі є **Logic Analyzer** (`diagram.json`). Під час симуляції зростає лічильник samples; після **Stop** браузер завантажить **`wokwi-logic.vcd`**. Хвилі SDA/SCL у Wokwi **не** показуються — їх переглядають у зовнішній програмі (див. нижче).
 
 **Файли Wokwi (лаб. 4, 5):** `main.py` + `diagram.json` (з папки lab04 або lab05) + `bmp180.py` (з `wokwi/lib/`).
 
-### Logic Analyzer: перегляд SDA/SCL (лаб. 1, 4)
+### Logic Analyzer: перегляд SDA/SCL (лаб. 4)
 
 Wokwi **записує** цифрові сигнали, але **не малює** осцилограму в браузері. Офіційна інструкція: [Wokwi Logic Analyzer Guide](https://docs.wokwi.com/guides/logic-analyzer).
 
@@ -157,8 +157,7 @@ Wokwi **записує** цифрові сигнали, але **не малює
 3. Відкрийте файл у **[PulseView](https://sigrok.org/)** (рекомендовано) або **GTKWave**:
    - PulseView: **Open** → ▼ → **Import Value Change Dump data…** → обрати `wokwi-logic.vcd`.
    - У діалозі імпорту встановіть **Downsampling factor = 50** (див. [таблицю Wokwi](https://docs.wokwi.com/guides/logic-analyzer)).
-4. **Лаб. 4:** додайте декодер **I²C** (кнопка *Add protocol decoder*). Канали з `diagram.json`: **SDA = D0** (GPIO21), **SCL = D1** (GPIO22). Зробіть скрін START, адреса **0x77**, ACK, STOP — у звіт.
-5. **Лаб. 1:** декодер **UART** на **D0** (GPIO17), швидкість з варіанту.
+4. Додайте декодер **I²C** (кнопка *Add protocol decoder*). Канали з `diagram.json`: **SDA = D0** (GPIO21), **SCL = D1** (GPIO22). Зробіть скрін START, адреса **0x77**, ACK, STOP — у звіт.
 
 **Встановлення PulseView** (одноразово; безкоштовно). Деталі та оновлення: [sigrok Downloads](https://sigrok.org/wiki/Downloads). Використання VCD: [Wokwi Logic Analyzer Guide](https://docs.wokwi.com/guides/logic-analyzer).
 
@@ -168,38 +167,45 @@ Wokwi **записує** цифрові сигнали, але **не малює
 | **Linux** | AppImage **PulseView (64bit)** з [sigrok Downloads](https://sigrok.org/wiki/Downloads): `chmod +x pulseview-*.AppImage` → `./pulseview-*.AppImage`. Альтернатива: пакет дистрибутива (`pulseview`), якщо є у репозиторії. |
 | **macOS** | З [sigrok Downloads](https://sigrok.org/wiki/Downloads) — **PulseView (64bit)** DMG → встановити в Applications. Офіційний DMG — **x86_64** (на Apple Silicon зазвичай працює через Rosetta). Деталі: [sigrok — Mac OS X](https://sigrok.org/wiki/Mac_OS_X). Якщо macOS блокує запуск: `xattr -cr /Applications/PulseView.app` |
 
-**GTKWave** — запасний переглядач без декодера I²C/UART: Linux `sudo apt install gtkwave`; macOS `brew install gtkwave`; Windows — [gtkwave.sourceforge.net](https://gtkwave.sourceforge.net/).
+**GTKWave** — запасний переглядач без декодера I²C: Linux `sudo apt install gtkwave`; macOS `brew install gtkwave`; Windows — [gtkwave.sourceforge.net](https://gtkwave.sourceforge.net/).
 
-**Surfer (веб, без встановлення)** — альтернатива, якщо PulseView не встановлюється (зокрема macOS): [app.surfer-project.org](https://app.surfer-project.org/) ([проєкт Surfer](https://surfer-project.org/)). Перетягніть `wokwi-logic.vcd` у вікно браузера, додайте сигнали **D0 (SDA)** та **D1 (SCL)**, зробіть скрін. **Немає декодера I²C/UART** — лише цифрові хвилі; у звіті коротко опишіть START, адресу **0x77**, ACK, STOP (або посилайтесь на `i2c.scan()` з Serial Monitor).
+**Surfer (веб, без встановлення)** — альтернатива, якщо PulseView не встановлюється (зокрема macOS): [app.surfer-project.org](https://app.surfer-project.org/) ([проєкт Surfer](https://surfer-project.org/)). Перетягніть `wokwi-logic.vcd` у вікно браузера, додайте сигнали **D0 (SDA)** та **D1 (SCL)**, зробіть скрін. **Немає декодера I²C** — лише цифрові хвилі; у звіті коротко опишіть START, адресу **0x77**, ACK, STOP (або посилайтесь на `i2c.scan()` з Serial Monitor).
 
 **Датчик I²C у Wokwi (лаб. 4, 5):** використовується вбудований **`board-bmp180`** (адреса **0x77**). У таблиці варіантів зазначено **BME280** — той самий тип завдання (температура по I²C); на реальному залізі — BME280 (0x76/0x77).
-
-**Підключення UART у Wokwi:** Serial Monitor ↔ USB-UART (`esp:TX`/`esp:RX`); **UART1** GPIO17 → Logic Analyzer D0; **LED** GPIO2 — індикація прийому. Повідомлення — **латиницею A–Z** (те саме в Wokwi і в `host/uart_host.py`).
 
 ## 1.5. Послідовний порт host, `--port` (лаб. 1)
 
 | Сценарій | Значення `--port` | ОС |
 |----------|-------------------|-----|
-| Без заліза (за замовч.) | `loop://` | усі (Windows, Linux, macOS) |
+| Самоперевірка TX | `loop://` | усі (Windows, Linux, macOS) |
 | USB-UART адаптер | `COM3`, `COM5`, … | Windows |
 | USB-UART адаптер | `/dev/ttyUSB0`, `/dev/ttyACM0` | Linux |
 | USB-UART адаптер | `/dev/cu.usbserial-*`, `/dev/cu.usbmodem*` | macOS |
-| Віртуальна пара (опційно) | `COM5` / `COM6` | Windows — com0com |
-| Віртуальна пара (опційно) | `/tmp/comA`, `/tmp/comB` | Linux/macOS — socat |
-| ESP32 у Wokwi | Serial Monitor | браузер |
+| Віртуальна пара (**обов’язковий** обмін TX↔RX) | `COM5` / `COM6` | Windows — com0com |
+| Віртуальна пара (**обов’язковий** обмін TX↔RX) | `/tmp/comA`, `/tmp/comB` | Linux/macOS — `uart_pty_pair` (або socat) |
 
-`loop://` однаковий на всіх ОС (pyserial `serial_for_url`); додаткових драйверів не потрібно.
+`loop://` однаковий на всіх ОС (pyserial `serial_for_url`); додаткових драйверів не потрібно — це лише **самоперевірка TX**, не роль приймача.
 
-**Linux/macOS** — віртуальна пара (опційно):
+**Linux/macOS** — віртуальна пара (**обов’язково** для обміну; без окремого `socat`):
 
 ```bash
-socat -d -d pty,raw,echo=0,link=/tmp/comA pty,raw,echo=0,link=/tmp/comB
+python3 -m host.uart_pty_pair
+# або: socat -d -d pty,raw,echo=0,link=/tmp/comA pty,raw,echo=0,link=/tmp/comB
 ```
 
 **Windows:** встановіть com0com (https://com0com.sourceforge.net/) і створіть пару з’єднаних портів (наприклад COM5 ↔ COM6).
 
-**Без драйверів:** `python3 -m host.uart_loopback_demo` або `python3 -m host.uart_host` (за замовч. `--port loop://`).
+**Обов’язковий обмін Host↔Device:**
 
+```bash
+python3 -m host.uart_pty_pair                                 # термінал 0
+python3 -m host.uart_device_emu --port /tmp/comB              # термінал 1 (RX)
+python3 -m host.uart_host --message "IVANOV" --port /tmp/comA --wait-ack   # термінал 2 (TX)
+```
+
+Windows: `--port COM6` / `--port COM5`. Див. [SETUP § Virtual COM](SETUP.md#virtual-com-ports-lab-1).
+
+**Лише TX:** `python3 -m host.uart_host` (за замовч. `--port loop://`).
 ## 1.6. Повідомлення (прізвище) та кодування
 
 **Повідомлення** для лаб. **1–3** і запису в mock USB (лаб. 3) — **прізвище студента великими латинськими літерами A–Z** (без пробілів; транслітерація, напр. `IVANOV`):
@@ -212,7 +218,7 @@ socat -d -d pty,raw,echo=0,link=/tmp/comA pty,raw,echo=0,link=/tmp/comB
 
 **Лаб. 4 (OLED):** вивести **те саме прізвище** на дисплей.
 
-Кодування: **ASCII / UTF-8** (латиниця); `cp1251` також підходить для A–Z. Завершення пакета UART — символ `\r`. **Не використовуйте кирилицю** — Wokwi Serial Monitor і MicroPython REPL її не приймають надійно.
+Кодування: **ASCII / UTF-8** (латиниця); `cp1251` також підходить для A–Z. Завершення пакета UART — символ `\r`. **Не використовуйте кирилицю** у повідомленні лаб. 1–3.
 
 **Номер варіанту (1–10)** задає лише **технічні параметри** (розділ 1.11), не текст повідомлення.
 
@@ -230,11 +236,11 @@ socat -d -d pty,raw,echo=0,link=/tmp/comA pty,raw,echo=0,link=/tmp/comB
 | Рівень | Приклад | Лабораторні |
 |--------|---------|-------------|
 | Модель протоколу | NRZI, Token/Data/Handshake | 2, 3 |
-| HAL / бібліотека | `machine.UART`, pyserial | 1, 4, 5 |
+| HAL / бібліотека | pyserial; `machine.UART` / `machine.I2C` (Wokwi) | 1; 4–5 |
 | API ОС | pathlib, tempfile, tkinter | 3, 5 |
 | Фізична шина (симуляція) | Wokwi Logic Analyzer | 4 |
 
-**Лаб. 1:** `Python host (pyserial) ↔ [COM / loop / Serial Monitor] ↔ ESP32 (machine.UART) у Wokwi`
+**Лаб. 1:** `Python host (pyserial) ↔ віртуальна пара COM ↔ uart_device_emu`
 
 **Лаб. 3:** модель байтів USB → mock enumeration → GUI + tempfile (аналог Mass Storage API, **не** kernel driver).
 
@@ -325,7 +331,7 @@ socat -d -d pty,raw,echo=0,link=/tmp/comA pty,raw,echo=0,link=/tmp/comB
 2. **Формат слова** — стартовий біт, біти даних (зазвичай 8), біт парності (опційно), один або кілька стопових бітів. Позначення **8N1**: 8 біт даних, без парності, 1 стоп-біт.
 3. **Передавальний порт** — режими **налаштування** (baudrate, bytesize, parity, stopbits) та **передавання** (запис байтів у буфер TX).
 4. **Приймальний порт** — налаштування → циклічне читання з буфера RX до завершення пакета (символ `\r`).
-5. **Драйвер** на ПК (pyserial) або в прошивці (`machine.UART`) інкапсулює доступ до апаратного UART.
+5. **Драйвер** на ПК (pyserial) інкапсулює доступ до послідовного порту; у прошивці MCU — `machine.UART` (лаб. 4–5).
 
 Інтерфейс RS-232C широко використовують у персональних та промислових комп’ютерах для обміну з периферією у **послідовному дуплексному** режимі. У багатьох ПК інтерфейс реалізований як **COM-порт**; для підключення застосовують стандартизований **25-** або **9-контактний** з’єднувач.
 
@@ -398,48 +404,57 @@ socat -d -d pty,raw,echo=0,link=/tmp/comA pty,raw,echo=0,link=/tmp/comB
 
 **Короткі теоретичні відомості.** Див. [теоретичний розділ блоку A](#теоретичні-відомості-для-виконання-лабораторних-робіт-1–2).
 
-**Технологія виконання.** Реалізуйте **дві ролі** в одній моделі обміну:
+**Технологія виконання.** Реалізуйте **дві ролі** на **одному живому шляху байтів** (віртуальна пара COM):
 
 | Роль | Програма | Функції |
 |------|----------|---------|
-| **Передавач (TX), host** | `host/uart_host.py` | `open_port`, `configure_port`, `send_message` |
-| **Приймач (RX), device** | Wokwi `main.py` (ESP32) | прийом рядка, `ACK:...`, verify, LED |
+| **Передавач (TX), host** | `host/uart_host.py` | `open_port`, `configure_port`, `send_message`, `--wait-ack` |
+| **Приймач (RX), device** | `host/uart_device_emu.py` — **обов’язково** | читання до `\r`, `--- exchange ---`, відповідь `ACK:…\n` |
+| Міст | `host/uart_pty_pair.py` (або socat / com0com) | `/tmp/comA` ↔ `/tmp/comB` (Linux/macOS); `COM5`↔`COM6` (Windows) |
 
-Параметри лінії (baud, format) **однакові** на TX і RX. Перевірка: блок `--- verify ---` у Wokwi та `Verify: OK` у host. Окремі два застосунки на ПК **не потрібні** — друга сторона обміну це **MCU у Wokwi**, а не другий Python-процес.
+**Одне прізвище** у `--message` host і в прийнятому кадрі RX. На `loop://` host лише **самоперевіряє запис** (echo) — це **не** роль приймача. Wokwi у лаб. 1 **не використовується** (перший Wokwi — лаб. 4).
+
+> **Формат кадру в лаб. 1.** У шаблоні `host/uart_host.py` формат лінії **захардкоджено як 8N1** (8 біт даних, без парності, 1 стоп-біт): `bytesize` / `parity` / `stopbits` не вибираються з GUI. У звіті достатньо зазначити **8N1** (або формат з варіанту як теоретичний параметр). **Старт-біт, парність (Even/Odd), стоп-біти та амплітудно-часова діаграма** — у **лабораторній № 2** (`uart_plot`, `signal_gui`, формати `8N1` / `7E1` / `8N2`).
 
 **Довідкова схема обміну (mermaid, не обов’язкова у звіті):**
 
 ```mermaid
 flowchart LR
   subgraph tx [Передавач host]
-    H1[open_port] --> H2[configure_port]
-    H2 --> H3[send_message TX]
+    H1[open_port] --> H2[send_message]
+    H2 --> H3[wait ACK]
   end
-  subgraph rx [Приймач device Wokwi]
-    W1[прийом рядка] --> W2[ACK на UART]
+  subgraph bridge [Віртуальна пара]
+    P[comA / comB]
   end
-  H3 -->|Serial / COM| W1
-  W2 -->|відповідь| H4[receive_message]
+  subgraph rx [Приймач uart_device_emu]
+    W1[read до CR] --> W2[ACK + exchange]
+  end
+  H2 --> P --> W1
+  W2 --> P --> H3
 ```
 
 
 **Кроки виконання:**
 
-1. Визначити параметри лінії згідно з варіантом (розділ 1.11) — **однакові для TX і RX**.
-2. **Передавач (host):** `host/uart_host.py` — `send_message()`; зафіксувати у звіті `TX hex`. Запуск:
+1. Визначити параметри лінії згідно з варіантом (розділ 1.11); **повідомлення** — прізвище (розділ 1.6).
+2. **(Опційно)** самоперевірка TX: `python3 -m host.uart_host --message "IVANOV" --baud 9600 --port loop://` → `TX hex`, `Verify: OK`.
+3. **Приймач + передавач — обов’язково** (живий шлях байтів):
    ```bash
-   python3 -m host.uart_host --message "IVANOV" --baud 9600 --port loop://
+   python3 -m host.uart_pty_pair                                 # термінал 0 (тримати запущеним)
+   python3 -m host.uart_device_emu --port /tmp/comB              # термінал 1 (RX)
+   python3 -m host.uart_host --message "IVANOV" --port /tmp/comA --wait-ack   # термінал 2 (TX)
    ```
-3. **Приймач (device):** Wokwi — `main.py` + `diagram.json`; на запит `Enter your message:` ввести прізвище **латиницею**; перевірити `--- verify ---`, **LED**, **Logic Analyzer D0** на GPIO17.
-4. Переконатися, що прийняте/відображене повідомлення збігається з переданим; host — `Verify: OK`.
-5. **Опційно:** `host/uart_loopback_demo.py` на `loop://` (TX+RX в одному процесі, без COM); або віртуальна пара COM (com0com / socat) — два термінали, як у класичній схемі з двома портами (див. розділ 1.5).
+   Альтернатива: `socat` (див. розділ 1.5). Windows: com0com (`COM5`↔`COM6`). Див. [SETUP § Virtual COM](SETUP.md#virtual-com-ports-lab-1).
+4. У звіті: лог emu (`--- exchange ---`) + host `TX hex` і `Verify: OK` на `ACK:…`.
+5. Коротко: ASCII першої літери прізвища (hex); idle = 1, start = 0; повний кадр — у лаб. 2.
 
 **Приклад коду (фрагмент, host):**
 
 ```python
 import serial
 
-PORT = "loop://"  # або COM5 / /tmp/comA — згідно з варіантом
+PORT = "/tmp/comA"  # або COM5; loop:// — лише самоперевірка TX
 BAUD = 9600
 
 def open_port(name: str) -> serial.Serial:
@@ -478,23 +493,25 @@ if __name__ == "__main__":
 
 **Додаткові питання:**
 
-11. Чим pyserial відрізняється від `machine.UART` на ESP32?
+11. Чим pyserial відрізняється від `machine.UART` на ESP32 (лаб. 4–5)?
 12. Як перевірити передачу без фізичного COM-порту та USB-UART адаптера?
-13. Які шари програмного забезпечення між застосунком host і UART у симуляторі Wokwi?
+13. Навіщо `uart_pty_pair` / com0com, якщо є `loop://`?
 14. Хто в цій лабораторній є **передавачем (TX)**, хто **приймачем (RX)**? Чому baud і format мають збігатися на обох сторонах?
+15. Які три контакти DB9 достатні для обміну даними? Що таке idle і start-біт?
 
 **Зміст звіту:**
 
 1. Мета роботи.
-2. Короткі теоретичні відомості (ролі TX/RX; формат кадру UART).
+2. Короткі теоретичні відомості (ролі TX/RX; **TXD/RXD/GND**; idle/start; формат кадру UART).
 3. Хід роботи:
    - **3.1** Параметри варіанту;
-   - **3.2** Передавач (host): лог/`TX hex`;
-   - **3.3** Приймач (device, Wokwi): скрін Serial Monitor, `--- verify ---`;
-   - **3.4** Модель обміну: `Verify: OK`, висновок про збіг повідомлення.
+   - **3.2** Передавач (host): `TX hex`; опційно `loop://`; з `--wait-ack` — `Verify: OK`;
+   - **3.3** Приймач (`uart_device_emu`, **обов’язково**): `--- exchange ---`, ACK;
+   - **3.4** Порівняння: ті самі байти на TX і RX; host прийняв `ACK:…`;
+   - **3.5** ASCII першої літери (підготовка до лаб. 2).
 4. Висновки.
 5. Текст програм ([E.1](#appendix-e1) у розділі «Приклад програмних драйверів» блоку A або додаток до звіту).
-6. Демонстрація на комп’ютері (на захисті — пояснити ролі TX і RX).
+6. Демонстрація на комп’ютері (на захисті — **показати live** Host↔Device на віртуальній парі).
 
 ---
 
@@ -508,7 +525,7 @@ if __name__ == "__main__":
 
 **Короткі теоретичні відомості.** Див. [теоретичний розділ блоку A](#теоретичні-відомості-для-виконання-лабораторних-робіт-1–2) (UART-діаграми та NRZI).
 
-**Технологія виконання.** Побудуйте амплітудно-часові діаграми передачі **усього заданого повідомлення** (UART та NRZI). **Основний спосіб** — CLI або **довідковий GUI** `host/signal_gui.py`: збереження **PNG** для звіту. Альтернатива: `encoding/uart_plot.py`, `encoding/usb_nrzi.py` (matplotlib). draw.io — лише запасний варіант; GUI надає курс — не замінює код студента у звіті.
+**Технологія виконання.** Побудуйте амплітудно-часові діаграми передачі **усього заданого повідомлення** (UART та NRZI). Тут же досліджуються **старт-біт, біти даних, парність (за форматом варіанту), стоп-біти** — на відміну від лаб. 1, де host захардкоджено як 8N1. **Основний спосіб** — CLI або **довідковий GUI** `host/signal_gui.py`: збереження **PNG** для звіту. Альтернатива: `encoding/uart_plot.py`, `encoding/usb_nrzi.py` (matplotlib). draw.io — лише запасний варіант; GUI надає курс — не замінює код студента у звіті.
 
 **Розрахунок часу передачі (UART):**
 
@@ -520,11 +537,13 @@ T_повідомлення ≈ (кількість_символів × біт_н
 
 **Кроки виконання:**
 
-1. За варіантом визначити повідомлення та baudrate.
-2. Побудувати діаграму UART для всього повідомлення з паузою 1 такт між символами.
+1. За варіантом визначити повідомлення, baudrate і **format**.
+2. Побудувати діаграму UART для всього повідомлення з паузою 1 такт між символами; підписати start/data/parity?/stop.
 3. Перетворити повідомлення в бітовий рядок; застосувати bit stuffing; закодувати NRZI.
 4. Побудувати діаграму NRZI для всього повідомлення.
 5. Розрахувати загальний час передавання повідомлення для UART (за заданим baudrate).
+6. **Посимвольно:** для однієї літери прізвища — таблиця ролей бітів UART + розбір NRZI (див. [examples/lab2/lab2.md](../examples/lab2/lab2.md) §4).
+7. У висновку: ті самі ASCII-байти з’являться в лаб. 3 (Data / `message.txt`).
 
 ![Рис. A.7. Приклад амплітудно-часової діаграми UART](images/uart-waveform-example.png)
 
@@ -575,14 +594,15 @@ pytest tests/test_usb_nrzi.py -v
 7. Чим відрізняється логічний рівень у програмі від електричного рівня на лінії RS-232?
 8. Чому довга послідовність одиниць у NRZI може бути проблемою для синхронізації?
 9. Для якої версії USB застосовується NRZI, а яке кодування використовує SuperSpeed (USB 3.x)?
+10. Як руками зібрати кадр UART для першої літери прізвища за форматом варіанту (`8N1` / `7E1` / `8N2`)?
 
 **Зміст звіту:**
 
 1. Мета роботи.
 2. Короткі теоретичні відомості.
-3. Хід роботи: **2 PNG** — UART і NRZI для всього повідомлення варіанту (експорт з CLI або `signal_gui`).
+3. Хід роботи: **2 PNG** — UART і NRZI для всього повідомлення; підписи start/data/parity?/stop; **посимвольний розбір** одного символу.
 4. Розрахунок загального часу передавання заданого повідомлення (UART).
-5. Висновки.
+5. Висновки (включно з містком ASCII → лаб. 3).
 6. Текст програми ([E.2](#appendix-e2) у розділі «Приклад програмних драйверів» блоку A або додаток до звіту).
 7. Демонстрація на комп’ютері програми для заданого пакету даних.
 
@@ -616,17 +636,13 @@ pytest tests/test_usb_nrzi.py -v
 
 {{include:host/uart_host.py}}
 
-#### host/uart_loopback_demo.py
+#### host/uart_device_emu.py (обов’язковий PC RX на віртуальній парі)
 
-{{include:host/uart_loopback_demo.py}}
+{{include:host/uart_device_emu.py}}
 
-#### wokwi/lab01-uart/main.py (MicroPython, Wokwi)
+#### host/uart_pty_pair.py (міст /tmp/comA ↔ /tmp/comB)
 
-{{include:wokwi/lab01-uart/main.py}}
-
-#### wokwi/lab01-uart/diagram.json (Wokwi)
-
-{{include:wokwi/lab01-uart/diagram.json}}
+{{include:host/uart_pty_pair.py}}
 
 <a id="appendix-e2"></a>
 
@@ -744,6 +760,7 @@ sequenceDiagram
 2. Запустити сканер; зафіксувати mock-пристрій згідно з варіантом.
 3. Записати повідомлення через GUI у temp-директорію; пояснити аналогію з Mass Storage.
 4. Зробити скрін `usb_gui`: список пристроїв після «Сканувати», панель властивостей mock-пристрою, результат запису `.txt`. NRZI-графіки — у лаб. 2.
+5. **(Для максимальної оцінки)** записати те саме прізвище на **реальну USB-флешку**: перелік removable → **мітка / формат / розмір** → `message.txt` → перевірка. Див. [examples/lab3/lab3.md](../examples/lab3/lab3.md) §6. Без флешки — здача за кроками 1–4 можлива, але **не на максимум**; mock/temp лишаються обов’язковими.
 
 ![Рис. B.2. Вікно програми usb_gui](images/usb-gui-example.png)
 
@@ -782,12 +799,13 @@ if __name__ == "__main__":
 9. На якому рівні працює запис у temp-директорію порівняно з USB device driver?
 10. Чим mock-список пристроїв відрізняється від `lsusb` або Диспетчера пристроїв?
 11. Чим роз’єм USB-C відрізняється від USB-A за кількістю контактів і ролями (host/device)?
+12. *(Для максимальної оцінки / флешка)* Чим запис на реальну флешку відрізняється від запису в `ppid_usb_*`? Чи це вже USB device driver?
 
 **Зміст звіту:**
 
 1. Мета роботи.
 2. Короткі теоретичні відомості (включно з порівнянням контактів USB-A та оглядом USB-C).
-3. Хід роботи: структура транзакції (Token → Data → Handshake); hex-дамп; скрін `usb_gui`.
+3. Хід роботи: структура транзакції (Token → Data → Handshake); hex-дамп; скрін `usb_gui`; **для максимальної оцінки** — запис на флешку (§6 короткого гайду).
 4. Висновки.
 5. Текст програми ([E.3](#appendix-e3) у розділі «Приклад програмних драйверів» блоку B або додаток до звіту).
 6. Демонстрація програми на комп’ютері.
@@ -796,7 +814,7 @@ if __name__ == "__main__":
 
 ## Приклад виконання основних етапів лабораторної роботи № 3
 
-> Зразок звіту для **повної оцінки**. Замініть `PETRENKO` на своє прізвище (латиницею A–Z).
+> Зразок звіту для **повної / максимальної оцінки** (включно з флешкою). Замініть `PETRENKO` на своє прізвище (латиницею A–Z).
 
 {{include:examples/lab3/report-example.md}}
 
@@ -1040,7 +1058,7 @@ python -m host.capstone_host --input sample_log.txt --plot out.png
 
 | № | Тема | Основні артефакти |
 |---|------|-------------------|
-| 1 | UART: передавач, приймач, модель обміну | Wokwi + `uart_host`, `Verify: OK` |
+| 1 | UART: передавач, приймач, модель обміну | `uart_host` + `uart_device_emu` (віртуальна пара) |
 | 2 | Діаграми UART + NRZI | PNG UART (`uart_plot` / `signal_gui`), PNG NRZI |
 | 3 | USB: транзакція, сканування, GUI | `usb_gui`, `usb_transaction`, hex |
 | 4 | Шина I²C, датчик | Wokwi + Logic Analyzer |
@@ -1050,9 +1068,9 @@ python -m host.capstone_host --input sample_log.txt --plot out.png
 
 - [ ] На титульному аркуші: номер варіанту та прізвище.
 - [ ] Python 3.11+ та пакети встановлені.
-- [ ] Wokwi-проєкти для лаб. 1, 4, 5 симулюються.
+- [ ] Wokwi-проєкти для лаб. 4, 5 симулюються.
 - [ ] У звіті: скріни, програмні PNG/логи, відповіді на питання (див. розділ 1.3).
-- [ ] Лаб. 1: Wokwi verify + `Verify: OK` у host.
+- [ ] Лаб. 1: `uart_device_emu` + `uart_host --wait-ack` (`TX hex`, `Verify: OK` на `ACK:…`).
 - [ ] Лаб. 2: 2 PNG (UART + NRZI).
 - [ ] Лаб. 3: USB-транзакція, USB-A vs USB-C, рівень ФС.
 - [ ] Лаб. 4: скрін Logic Analyzer.
@@ -1073,7 +1091,7 @@ python -m host.capstone_host --input sample_log.txt --plot out.png
 
 | Лаб | Якір | Блок | Зміст |
 |-----|------|------|-------|
-| 1 | [E.1](#appendix-e1) | A | `host/uart_host.py`, `uart_loopback_demo.py`, Wokwi lab01 |
+| 1 | [E.1](#appendix-e1) | A | `host/uart_host.py`, `uart_device_emu.py`, `uart_pty_pair.py` |
 | 2 | [E.2](#appendix-e2) | A | `encoding/uart_plot.py`, `usb_nrzi.py`, `signal_gui.py` |
 | 3 | [E.3](#appendix-e3) | B | `usb_transaction.py`, `usb_scan.py`, `usb_gui.py`, `usb_devices.json` |
 | 4 | [E.4](#appendix-e4) | C | Wokwi lab04 I²C |

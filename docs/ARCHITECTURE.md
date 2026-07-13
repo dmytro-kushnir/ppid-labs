@@ -3,18 +3,17 @@
 | Level | Example | Labs |
 |-------|---------|------|
 | Protocol model | NRZI, Token/Data/Handshake | 2, 3 |
-| HAL / library | `machine.UART`, pyserial | 1, 4, 5 |
+| HAL / library | pyserial; `machine.UART` / `machine.I2C` (Wokwi) | 1; 4–5 |
 | OS API | `pathlib`, `tempfile`, tkinter | 2 (reference GUI), 3, 5 |
 | Physical bus (simulated) | Wokwi Logic Analyzer | 4 |
 
 ## Lab 1: host ↔ device
 
 ```
-Python host (pyserial)  ←→  [COM / loop / Serial Monitor]  ←→  ESP32 (machine.UART) in Wokwi
+Python host (uart_host)  ←→  virtual COM pair (uart_pty_pair / com0com)  ←→  uart_device_emu
 ```
 
-Reference GUI `host/signal_gui.py` (UART tab) — demo plots and optional loopback TX; students still implement `uart_host.py`.
-
+`loop://` is TX self-check only. Reference GUI `host/signal_gui.py` is for lab 2.
 ## Lab 2: signal visualization
 
 ```

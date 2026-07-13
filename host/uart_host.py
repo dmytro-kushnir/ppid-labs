@@ -17,6 +17,7 @@ def open_port(
     baud: int = DEFAULT_BAUD,
     timeout: float = 1.0,
 ) -> serial.Serial:
+    # Lab 1 keeps line format fixed at 8N1; parity/stop variants are explored in lab 2.
     kwargs = {
         "baudrate": baud,
         "bytesize": serial.EIGHTBITS,
@@ -25,9 +26,19 @@ def open_port(
         "timeout": timeout,
     }
     # loop:// and other URL schemes need serial_for_url (Serial() treats them as paths)
-    if "://" in name:
-        return serial.serial_for_url(name, **kwargs)
-    return serial.Serial(port=name, **kwargs)
+    try:
+        if "://" in name:
+            return serial.serial_for_url(name, **kwargs)
+        return serial.Serial(port=name, **kwargs)
+    except serial.SerialException as exc:
+        hint = ""
+        if name.startswith("/tmp/com") or name.startswith("/dev/tty"):
+            hint = (
+                "\nHint (Linux/macOS): start a virtual pair first:\n"
+                "  python3 -m host.uart_pty_pair\n"
+                "Or install socat and create /tmp/comA ↔ /tmp/comB (see docs/SETUP.md)."
+            )
+        raise serial.SerialException(f"{exc}{hint}") from None
 
 
 def configure_port(ser: serial.Serial, baud: int = DEFAULT_BAUD) -> None:
@@ -81,6 +92,10 @@ def verify_loopback_reply(sent: str, reply: str) -> bool:
     return reply == sent
 
 
+def verify_ack_reply(sent: str, reply: str) -> bool:
+    return reply == f"ACK:{sent}"
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="UART host send/receive")
     parser.add_argument(
@@ -91,6 +106,11 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--baud", type=int, default=DEFAULT_BAUD)
     parser.add_argument("--message", default="SAMPLE")
     parser.add_argument("--encoding", default=DEFAULT_ENCODING)
+    parser.add_argument(
+        "--wait-ack",
+        action="store_true",
+        help="Wait for ACK:… from peer (use with uart_device_emu on virtual COM)",
+    )
     args = parser.parse_args(argv)
 
     with open_port(args.port, args.baud, timeout=2) as ser:
@@ -101,12 +121,21 @@ def main(argv: Optional[list[str]] = None) -> int:
         print(f"Надіслано байт: {nbytes}")
         print(f"TX hex: {format_hex(payload)}")
         if args.port.startswith("loop"):
+            # Echo self-check of TX write — not the device RX role (use --wait-ack + emu).
             reply = receive_message(ser, args.encoding)
             print(f"RX text (loopback): {reply!r}")
             if verify_loopback_reply(args.message, reply):
                 print("Verify: OK")
             else:
                 print(f"Verify: FAIL (очікувалось {args.message!r})")
+        elif args.wait_ack:
+            reply = receive_message(ser, args.encoding, until=b"\n")
+            print(f"RX text: {reply!r}")
+            expected = f"ACK:{args.message}"
+            if verify_ack_reply(args.message, reply):
+                print("Verify: OK")
+            else:
+                print(f"Verify: FAIL (очікувалось {expected!r})")
     return 0
 
 

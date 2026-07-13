@@ -1,6 +1,6 @@
 # UART transmitter and receiver algorithms (довідково)
 
-Reference flowcharts for understanding Lab 1 — **not required in the student report**. Reports use Wokwi screenshots + host logs (`Verify: OK`), not hand-drawn diagrams.
+Reference flowcharts for understanding Lab 1 — **not required in the student report**. Reports use host + emu logs (`TX hex`, `Verify: OK`), not hand-drawn diagrams.
 
 ## Transmitter
 
@@ -28,4 +28,4 @@ flowchart TD
   close --> endNode([End])
 ```
 
-Code: [host/uart_host.py](../../host/uart_host.py), Wokwi: [wokwi/lab01-uart/](../../wokwi/lab01-uart/).
+Code: [host/uart_host.py](../../host/uart_host.py), [host/uart_device_emu.py](../../host/uart_device_emu.py), [host/uart_pty_pair.py](../../host/uart_pty_pair.py).

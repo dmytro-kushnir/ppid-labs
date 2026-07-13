@@ -35,15 +35,18 @@ python3 -m pytest tests/ -v
 ### By lab
 
 ```bash
-# Lab 1 — UART host
-python3 -m host.uart_loopback_demo
+# Lab 1 — UART: TX host + RX uart_device_emu (virtual COM, compulsory)
+python3 -m host.uart_pty_pair
+# python3 -m host.uart_device_emu --port /tmp/comB
+# python3 -m host.uart_host --message "IVANOV" --port /tmp/comA --wait-ack
+
+# Lab 1 — TX self-check only (loop://); not the RX role
 python3 -m host.uart_host --message "IVANOV"
 
-# Lab 1 — with a real or virtual port (see table below)
+# Lab 1 — with a real or virtual port
 python3 -m host.uart_host --message "IVANOV" --port COM5          # Windows USB-UART or com0com
 python3 -m host.uart_host --message "IVANOV" --port /dev/ttyUSB0 # Linux USB-UART
-python3 -m host.uart_host --message "IVANOV" --port /tmp/comA     # Linux/macOS (socat)
-
+python3 -m host.uart_host --message "IVANOV" --port /tmp/comA     # Linux/macOS (pty pair)
 # Lab 2 — signal plots
 python3 -m encoding.uart_plot --message "IVANOV" --baud 9600
 python3 -m encoding.usb_nrzi --message "IVANOV"
@@ -58,7 +61,7 @@ python3 -m host.usb_gui
 python3 -m host.capstone_host
 ```
 
-Wokwi: import `wokwi/lab01-uart/`, `lab04-i2c-sensor/`, or `lab05-capstone/` — see [docs/SETUP.md](docs/SETUP.md).
+Wokwi (labs 4–5): import `wokwi/lab04-i2c-sensor/` or `lab05-capstone/` — see [docs/SETUP.md](docs/SETUP.md).
 
 ### Lab 1: `--port` by platform
 
@@ -68,9 +71,8 @@ Wokwi: import `wokwi/lab01-uart/`, `lab04-i2c-sensor/`, or `lab05-capstone/` —
 | USB-UART adapter | `COM3`, `COM5`, … | Windows |
 | USB-UART adapter | `/dev/ttyUSB0`, `/dev/ttyACM0` | Linux |
 | USB-UART adapter | `/dev/cu.usbserial-*`, `/dev/cu.usbmodem*` | macOS |
-| Virtual pair (optional) | `COM5` / `COM6` | Windows ([com0com](https://com0com.sourceforge.net/)) |
-| Virtual pair (optional) | `/tmp/comA`, `/tmp/comB` | Linux/macOS (`socat`, see SETUP) |
-| ESP32 in Wokwi | Wokwi Serial Monitor | browser |
+| Virtual pair (**compulsory** Host↔Device) | `COM5` / `COM6` | Windows ([com0com](https://com0com.sourceforge.net/)) |
+| Virtual pair (**compulsory** Host↔Device) | `/tmp/comA`, `/tmp/comB` | Linux/macOS (`uart_pty_pair`, see SETUP) |
 
 `loop://` works the same on every OS (pyserial `serial_for_url`). Virtual COM tools differ by OS; see [docs/SETUP.md](docs/SETUP.md) § Virtual COM ports.
 
@@ -80,7 +82,7 @@ Wokwi: import `wokwi/lab01-uart/`, `lab04-i2c-sensor/`, or `lab05-capstone/` —
 
 | Lab | Repo provides | Students implement / report |
 |-----|---------------|---------------------------|
-| **1** UART host↔device | `uart_host.py`, Wokwi UART echo/ACK, `signal_gui.py` (reference) | Flowcharts, variant message, defence demo |
+| **1** UART host↔device | `uart_host.py`, `uart_device_emu.py`, `uart_pty_pair.py` | Live ACK exchange, defence demo |
 | **2** Signal plots | `uart_plot.py`, `usb_nrzi.py`, `signal_gui.py` (reference) | Diagrams for full message, time calculation |
 | **3** USB model | Transaction builder, mock scan, `usb_gui.py` | Transaction diagram, USB-A vs USB-C comparison |
 | **4** I²C | Wokwi BME280/OLED template | `i2c.scan()`, Logic Analyzer screenshot |

@@ -32,7 +32,7 @@
 2. Створити **три файли у Wokwi:** **`main.py`**, **`diagram.json`** — з [lab04-i2c-sensor/](../../wokwi/lab04-i2c-sensor/); **`bmp180.py`** — з [wokwi/lib/](../../wokwi/lib/bmp180.py).
 3. Запустити симуляцію; перевірити `I2C scan: ['0x77']`.
 4. У Serial Monitor — рядки `TEMP=... PRESS=...`.
-5. **Logic Analyzer:** sim → **Stop** → `wokwi-logic.vcd`. **PulseView** (рекомендовано, декодер I²C) — [SETUP § PulseView](../../docs/SETUP.md#pulseview-labs-1-4--logic-analyzer), [Wokwi guide](https://docs.wokwi.com/guides/logic-analyzer). **Або Surfer у браузері** (без встановлення): [app.surfer-project.org](https://app.surfer-project.org/) — [SETUP § Surfer](../../docs/SETUP.md#surfer--web-fallback-labs-1-4). Скрін SDA/SCL; для Surfer — коротко опишіть START / **0x77** / ACK / STOP у тексті звіту.
+5. **Logic Analyzer:** sim → **Stop** → `wokwi-logic.vcd`. **PulseView** (рекомендовано, декодер I²C) — [SETUP § PulseView](../../docs/SETUP.md#pulseview-lab-4--logic-analyzer), [Wokwi guide](https://docs.wokwi.com/guides/logic-analyzer). **Або Surfer у браузері** (без встановлення): [app.surfer-project.org](https://app.surfer-project.org/) — [SETUP § Surfer](../../docs/SETUP.md#surfer--web-fallback-lab-4). Скрін SDA/SCL; для Surfer — коротко опишіть START / **0x77** / ACK / STOP у тексті звіту.
 6. Коротко порівняти I²C і SPI у звіті.
 
 ```mermaid

@@ -243,7 +243,7 @@ Flow control: **RTS/CTS** (апаратний) або XON/XOFF (програмн
 
 | Лаб | Тема | Лекції | Інструменти |
 |-----|------|--------|-------------|
-| 1 | UART host + ESP32 (Wokwi) | 1 | pyserial, Wokwi |
+| 1 | UART host ↔ device (віртуальна пара) | 1 | pyserial, `uart_device_emu` |
 | 2 | Діаграми UART та NRZI | 1–2 | matplotlib, pytest |
 | 3 | Модель USB 2.0 (mock) | 2 | Python, tkinter |
 | 4 | Шина I²C | 6 | Wokwi, Logic Analyzer |
@@ -403,7 +403,7 @@ Ethernet **не входить** до 15 лекцій PDF; деталі TCP/IP �
 
 ## Чеклист готовності до захисту
 
-- [ ] Лаб. 1: Wokwi verify + `Verify: OK`; скріни та логи (без обов’язкових flowchart)
+- [ ] Лаб. 1: `uart_device_emu` + host `--wait-ack`; скріни та логи (без обов’язкових flowchart)
 - [ ] Лаб. 2: 2 PNG (UART + NRZI); `pytest tests/`
 - [ ] Лаб. 3: USB-транзакція + mock GUI; **чому це не kernel driver**
 - [ ] Лаб. 4: I²C scan + Logic Analyzer у Wokwi
