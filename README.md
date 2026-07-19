@@ -57,8 +57,8 @@ python3 -m host.usb_transaction --message "IVANOV"
 python3 -m host.usb_scan
 python3 -m host.usb_gui
 
-# Lab 5 — capstone host (default: sample_log.txt → capstone_plot.png)
-python3 -m host.capstone_host
+# Lab 5 — capstone host (after Wokwi → my_log.txt)
+python3 -m host.capstone_host --input my_log.txt --plot capstone_plot.png --csv readings.csv
 ```
 
 Wokwi (labs 4–5): import `wokwi/lab04-i2c-sensor/` or `lab05-capstone/` — see [docs/SETUP.md](docs/SETUP.md).
@@ -85,7 +85,7 @@ Wokwi (labs 4–5): import `wokwi/lab04-i2c-sensor/` or `lab05-capstone/` — se
 | **1** UART host↔device | `uart_host.py`, `uart_device_emu.py`, `uart_pty_pair.py` | Live ACK exchange, defence demo |
 | **2** Signal plots | `uart_plot.py`, `usb_nrzi.py`, `signal_gui.py` (reference) | Diagrams for full message, time calculation |
 | **3** USB model | Transaction builder, mock scan, `usb_gui.py` | Transaction diagram, USB-A vs USB-C comparison |
-| **4** I²C | Wokwi BME280/OLED template | `i2c.scan()`, Logic Analyzer screenshot |
+| **4** I²C | Wokwi BMP180 (+ OLED variants) | `i2c.scan()`, Logic Analyzer screenshot |
 | **5** Capstone | Wokwi telemetry + `capstone_host.py` | Component diagram, CSV plot, driver layers |
 
 Assignment variants: [fixtures/variants.json](fixtures/variants.json) — **surname** as message (labs 1–3); **variant number** for baud, format, sensor.

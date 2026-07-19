@@ -4,7 +4,7 @@ Lab 5 component diagram.
 
 ```mermaid
 flowchart LR
-  BME[BME280 sensor] -->|I2C| ESP[ESP32 Wokwi]
+  BMP[BMP180 sensor] -->|I2C| ESP[ESP32 Wokwi]
   ESP -->|UART telemetry| Mon[Serial Monitor log]
   Mon --> Host[Python capstone_host]
   Host --> CSV[readings.csv]
@@ -13,3 +13,5 @@ flowchart LR
 ```
 
 Firmware: [wokwi/lab05-capstone/](../../wokwi/lab05-capstone/). Host: [host/capstone_host.py](../../host/capstone_host.py).
+
+Sensor on the Wokwi diagram is **`board-bmp180`** (I²C **0x77**). Variant field `sensor: BME280` means the same assignment type (temperature over I²C).

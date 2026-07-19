@@ -20,6 +20,8 @@ venv/
 !docs/images/
 !docs/images/*.png
 capstone_plot.png
+readings.csv
+my_log.txt
 
 # OS
 .DS_Store

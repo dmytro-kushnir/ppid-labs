@@ -1,5 +1,5 @@
 PPID Lab 5 — Capstone node
-I2C: ['0x76']
+I2C: ['0x77']
 TEMP=22.1
 TEMP=22.3
 TEMP=22.5

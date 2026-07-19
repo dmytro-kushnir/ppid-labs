@@ -34,15 +34,15 @@ Wokwi exports `wokwi-logic.vcd` when you stop the simulation. Open it in **Pulse
 | **Linux** | Download **PulseView (64bit)** AppImage; `chmod +x pulseview-*.AppImage` then run it. Or use your distro's `pulseview` package if available. |
 | **macOS** | Download **PulseView (64bit)** DMG from [sigrok Downloads](https://sigrok.org/wiki/Downloads); drag to Applications. Official build is **x86_64** (on Apple Silicon it usually runs via Rosetta). See [sigrok — Mac OS X](https://sigrok.org/wiki/Mac_OS_X). If macOS blocks launch: `xattr -cr /Applications/PulseView.app` |
 
-> **Note:** `brew install sigrok` is **not** a Homebrew formula. Do not use it.
-
 **Open capture:** PulseView → **Open** → ▼ → **Import Value Change Dump data…** → `wokwi-logic.vcd` → downsampling **50** → add **I²C** decoder (lab 4: SDA=D0, SCL=D1).
+
+**What to look for:** channels **SDA** and **SCL** (often labeled **D0**/**D1**); idle mostly high (`1`); short **bursts** of transitions = I²C transactions. With the I²C decoder you should see address **0x77** and ACK. The VCD is digital wire levels only — not Serial `TEMP=...` text.
 
 ## Surfer — web fallback (lab 4)
 
 If PulseView is unavailable (common on newer macOS), use **[Surfer](https://surfer-project.org/)** in the browser: [app.surfer-project.org](https://app.surfer-project.org/). Drag and drop `wokwi-logic.vcd`, add channels **D0** and **D1** (SDA/SCL for lab 4). Screenshot the waveforms for your report.
 
-Surfer shows **raw digital waves only** — no I²C protocol decoder. Describe START, address, ACK, STOP in text, or rely on Serial Monitor output (`I2C scan: ['0x77']`). For decoded I²C labels, prefer PulseView when it works ([Wokwi Logic Analyzer Guide](https://docs.wokwi.com/guides/logic-analyzer)).
+**What to look for (same as PulseView, without decoder labels):** SDA/SCL mostly idle high; **bursts** of activity = I²C traffic. Surfer shows **raw digital waves only** — no I²C protocol decoder. Describe START, address, ACK, STOP in text, or rely on Serial Monitor (`I2C scan: ['0x77']`). For decoded I²C labels, prefer PulseView when it works ([Wokwi Logic Analyzer Guide](https://docs.wokwi.com/guides/logic-analyzer)).
 
 ## Virtual COM ports (lab 1)
 

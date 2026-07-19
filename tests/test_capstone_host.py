@@ -11,7 +11,7 @@ from host.capstone_host import export_to_mock_usb, main, parse_log_file, parse_l
 def test_parse_log_lines_ignores_header() -> None:
     lines = [
         "PPID Lab 5 — Capstone node",
-        "I2C: ['0x76']",
+        "I2C: ['0x77']",
         "TEMP=22.1",
         "TEMP=23.0",
     ]
@@ -43,6 +43,17 @@ def test_export_to_mock_usb(tmp_path: Path) -> None:
 
 def test_main_export_usb_leaves_no_orphan_mkdtemp(tmp_path: Path) -> None:
     plot = tmp_path / "plot.png"
-    assert main(["--plot", str(plot), "--export-usb"]) == 0
+    csv_path = tmp_path / "readings.csv"
+    assert main(["--plot", str(plot), "--csv", str(csv_path), "--export-usb"]) == 0
     assert plot.is_file()
+    assert csv_path.is_file()
     assert not list(Path(tempfile.gettempdir()).glob("ppid_usb_export_*"))
+
+
+def test_main_writes_csv_and_plot(tmp_path: Path) -> None:
+    plot = tmp_path / "plot.png"
+    csv_path = tmp_path / "out.csv"
+    assert main(["--plot", str(plot), "--csv", str(csv_path)]) == 0
+    text = csv_path.read_text(encoding="utf-8")
+    assert "sample,temp_c" in text
+    assert "22.1" in text

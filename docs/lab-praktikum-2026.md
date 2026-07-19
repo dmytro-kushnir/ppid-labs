@@ -3,7 +3,7 @@
 **Навчальний заклад:** Національний університет «Львівська політехніка»  
 **Кафедра:** Електроніка та комп’ютерні технології (ЕОМ)  
 **Дисципліна:** Периферійні пристрої, інтерфейси та драйвери (PPID)  
-**Спеціалізація:** Комп’ютерні системи та мережі (КСМ)  
+**Спеціалізація:** Інтерфейси та драйвери периферійних пристроїв  
 **Видання:** 2026 (**5 лабораторних робіт**)
 
 > **Про цей документ.** Методичний посібник: **Вступ → загальні положення → тематичні блоки** (теорія → лабораторні → приклад виконання → приклад програм). Усі інструкції, таблиці варіантів, зразки звітів, **повні лістинги програм** у розділах «Приклад програмних драйверів» кожного блоку, схеми Wokwi та питання для самоперевірки зібрані **в одному файлі**. Окремі markdown-файли чи посилання на репозиторій **не потрібні**. Для практичної частини потрібні: **Python 3.11+**, пакети з розділу 1.2 та браузер з доступом до **https://wokwi.com** (лабораторні 1, 4, 5).
@@ -12,9 +12,9 @@
 
 # ВСТУП
 
-**Мета practicum** — опанування студентами технологій розроблення та дослідження програмних драйверів периферійних інтерфейсів: послідовного асинхронного **RS-232C / UART**, **USB (УПШ)**, синхронної шини **I²C**, а також інтеграції вузла моніторингу (capstone). Посібник призначений для студентів спеціалізації **КСМ** у рамках дисципліни PPID.
+**Мета practicum** — опанування студентами технологій розроблення та дослідження програмних драйверів периферійних інтерфейсів: послідовного асинхронного **RS-232C / UART**, **USB (УПШ)**, синхронної шини **I²C**, а також інтеграції вузла моніторингу (capstone). Посібник призначений для студентів дисципліни **«Інтерфейси та драйвери периферійних пристроїв»** (PPID).
 
-**Умови виконання (2026).** Лабораторні працюють на **Python 3.11+**; лаб. **4–5** — симулятор **Wokwi** (ESP32 MicroPython). Лаб. **1** — host + `uart_device_emu` на віртуальній парі (без Wokwi). Фізичне залізо (USB-UART, BME280) **не обов’язкове**; за замовчуванням — `loop://` (лише TX) та mock USB-пристрої.
+**Умови виконання (2026).** Лабораторні працюють на **Python 3.11+**; лаб. **4–5** — симулятор **Wokwi** (ESP32 MicroPython). Лаб. **1** — host + `uart_device_emu` на віртуальній парі (без Wokwi). Фізичне залізо (USB-UART, зовнішній датчик I²C) **не обов’язкове**; за замовчуванням — `loop://` (лише TX) та mock USB-пристрої.
 
 Практикум містить **5 лабораторних** у **трьох блоках**:
 
@@ -171,7 +171,8 @@ Wokwi **записує** цифрові сигнали, але **не малює
 
 **Surfer (веб, без встановлення)** — альтернатива, якщо PulseView не встановлюється (зокрема macOS): [app.surfer-project.org](https://app.surfer-project.org/) ([проєкт Surfer](https://surfer-project.org/)). Перетягніть `wokwi-logic.vcd` у вікно браузера, додайте сигнали **D0 (SDA)** та **D1 (SCL)**, зробіть скрін. **Немає декодера I²C** — лише цифрові хвилі; у звіті коротко опишіть START, адресу **0x77**, ACK, STOP (або посилайтесь на `i2c.scan()` з Serial Monitor).
 
-**Датчик I²C у Wokwi (лаб. 4, 5):** використовується вбудований **`board-bmp180`** (адреса **0x77**). У таблиці варіантів зазначено **BME280** — той самий тип завдання (температура по I²C); на реальному залізі — BME280 (0x76/0x77).
+**Що шукати у VCD (PulseView / Surfer / GTKWave):** канали **SDA** і **SCL** (часто **D0**/**D1**); у спокої обидві ≈ **1** (*idle*); **пачки** переходів — транзакції I²C (`scan`, читання датчика). Це рівні на дротах, не текст `TEMP=...`. У PulseView з декодером — підпис адреси **0x77** і ACK; у Surfer — лише хвилі + адреса з Serial.
+**Датчик I²C у Wokwi (лаб. 4, 5):** на схемі — **`board-bmp180`**, адреса **0x77**. У таблиці варіантів поле `sensor` часто = `BME280` (тип завдання); у симуляторі завжди працюєте з файлами lab04/lab05 + `bmp180.py`.
 
 ## 1.5. Послідовний порт host, `--port` (лаб. 1)
 
@@ -244,7 +245,7 @@ Windows: `--port COM6` / `--port COM5`. Див. [SETUP § Virtual COM](SETUP.md#
 
 **Лаб. 3:** модель байтів USB → mock enumeration → GUI + tempfile (аналог Mass Storage API, **не** kernel driver).
 
-**Лаб. 5:** `BME280 → I²C → ESP32 → UART → host → CSV + графік`
+**Лаб. 5:** `BMP180 → I²C → ESP32 → UART → host → CSV + графік`
 
 ## 1.8. Класифікація периферійних інтерфейсів (орієнтир)
 
@@ -2681,13 +2682,13 @@ if __name__ == "__main__":
 
 ---
 
-# БЛОК C. Лабораторні 4–5 (I²C та інтеграція КСМ)
+# БЛОК C. Лабораторні 4–5 (I²C та вузол моніторингу)
 
 ## Теоретичні відомості для виконання лабораторних робіт № 4–5
 
 **I²C (EN):** *synchronous, multi-master/multi-slave, single-ended, serial communication bus* (open-drain SDA/SCL).
 
-**I²C** (*Inter-Integrated Circuit*): лінії **SDA** (дані), **SCL** (такт); **master** ініціює; **7-бітна адреса** (BME280: 0x76/0x77; OLED часто 0x27); транзакція START → адреса + R/W → ACK → дані → STOP; **open-drain** + **pull-up**. У Wokwi підтягування вбудоване.
+**I²C** (*Inter-Integrated Circuit*): лінії **SDA** (дані), **SCL** (такт); **master** ініціює; **7-бітна адреса** (у лаб. 4 Wokwi BMP180: **0x77**; OLED часто 0x27); транзакція START → адреса + R/W → ACK → дані → STOP; **open-drain** + **pull-up**. У Wokwi підтягування вбудоване.
 
 **SPI** (*Serial Peripheral Interface*): *synchronous, full-duplex, serial* — окремі **MOSI**, **MISO**, **SCK**, **CS**; вища швидкість; немає адресації на шині — окремий **CS** (chip select) на пристрій.
 
@@ -2725,22 +2726,22 @@ if __name__ == "__main__":
 flowchart LR
   ESP[ESP32 master] -->|SCL| Bus[I2C bus]
   ESP -->|SDA| Bus
-  Bus --> BME[BME280 slave]
+  Bus --> BMP[BMP180 slave]
 ```
-
 
 **Кроки виконання:**
 
-1. Вставити **`main.py`**, **`bmp180.py`** та **`diagram.json`** з **[E.4](#appendix-e4)** у Wokwi MicroPython ESP32.
-2. Виконати `i2c.scan()` — зафіксувати адресу пристрою у звіті (Wokwi BMP180: **0x77**).
-3. Прочитати температуру (BMP180 у Wokwi; BME280 на реальному залізі) — вивід у Serial Monitor.
-4. Записати шину **Logic Analyzer** (Stop → `wokwi-logic.vcd`); відкрити у **PulseView**, декодер **I²C**; скрін SDA/SCL під час `scan()` або читання (§1.4).
+1. Вставити **`main.py`**, **`bmp180.py`** та **`diagram.json`** з **[E.4](#appendix-e4)** у Wokwi MicroPython ESP32 (датчик на схемі — BMP180).
+2. Виконати `i2c.scan()` — у звіті адреса **0x77**.
+3. Прочитати TEMP/PRESS — вивід у Serial Monitor; скрін.
+4. **Опційно:** під час симуляції клікнути на BMP180 у Wokwi і змінити temperature/pressure слайдерами — у Serial мають оновитись значення (без змін у коді).
+5. **Logic Analyzer:** Stop → `wokwi-logic.vcd` → PulseView (декодер I²C) або Surfer; скрін SDA/SCL (§1.4).
 
 ![Рис. C.2. Декодування SDA/SCL у PulseView](images/i2c-logic-analyzer.png)
 
 *Ілюстративний рисунок методички. У звіті студента — **скріншот** PulseView/Surfer з декодером I²C (адреса 0x77, ACK, STOP).*
 
-5. Порівняти I²C та SPI (коротко) у розділі теорії звіту.
+6. Порівняти I²C та SPI (коротко) у теорії звіту. Див. також короткий гайд [examples/lab4/lab4.md](../examples/lab4/lab4.md).
 
 **Питання для самоперевірки:**
 
@@ -2760,7 +2761,7 @@ flowchart LR
 
 1. Мета роботи.
 2. Короткі теоретичні відомості (I²C; порівняння з SPI).
-3. Хід роботи: адреса, регістри, скрін Logic Analyzer.
+3. Хід роботи: адреса **0x77**, Serial TEMP/PRESS, скрін Logic Analyzer.
 4. Висновки.
 5. Текст програми ([E.4](#appendix-e4) у розділі «Приклад програмних драйверів» блоку C або додаток до звіту).
 6. Демонстрація в Wokwi.
@@ -2771,7 +2772,7 @@ flowchart LR
 
 ### Розроблення та дослідження інтегрованого вузла моніторингу комп’ютерної системи (capstone)
 
-**Мета роботи:** опанування студентом технології інтеграції послідовного інтерфейсу UART, шини I²C та рівня зберігання даних (аналог периферійного накопичувача) у міні-системі моніторингу, характерній для вузлів IoT на базі ESP32 або одноплатних комп’ютерів (спеціалізація КСМ).
+**Мета роботи:** опанування студентом технології інтеграції послідовного інтерфейсу UART, шини I²C та рівня зберігання даних (аналог периферійного накопичувача) у міні-системі моніторингу, характерній для вузлів IoT на базі ESP32 або одноплатних комп’ютерів.
 
 **Завдання на роботу.** Інтервал опитування датчика та формат телеметричного рядка визначає викладач згідно з **розділом 1.11** (типово: `TEMP=<значення>\r\n` кожні 200–1000 мс). Повідомлення та параметри UART — як у лабораторній № 1.
 
@@ -2781,7 +2782,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  BME[BME280] -->|I2C| ESP[ESP32]
+  BMP[BMP180] -->|I2C| ESP[ESP32]
   ESP -->|UART TEMP=...| Log[Serial log]
   Log --> Host[capstone_host]
   Host --> CSV[CSV]
@@ -2793,21 +2794,21 @@ flowchart LR
 
 **Кроки виконання:**
 
-1. **Embedded (Wokwi):** **`main.py`**, **`bmp180.py`** та **`diagram.json`** з **[E.5](#appendix-e5)**.
-2. Зберегти вивід Serial Monitor у текстовий файл (лог симуляції).
-3. **Host (Python):** програма `host/capstone_host.py` ([E.5](#appendix-e5)) — парсинг рядків `TEMP=...`, запис CSV, побудова графіка matplotlib.
-4. Опційно: експорт CSV у mock USB-директорію (як у лаб. 3).
-5. У звіті: **діаграма компонентів** з методички (mermaid вище) та пояснення шарів драйверів — без ручного малювання.
+1. **Embedded (Wokwi):** **`main.py`**, **`bmp180.py`** та **`diagram.json`** з **[E.5](#appendix-e5)** (датчик на схемі — BMP180, адреса **0x77**). Виставити `INTERVAL_MS` згідно з `poll_ms` варіанту.
+2. Зберегти вивід Serial Monitor у `my_log.txt` (рядки `TEMP=...`). **Опційно:** під час симуляції клікнути на BMP180 і змінити temperature слайдером кілька разів — у логу будуть різні `TEMP=` (зручніше для графіка).
+3. **Host** на своєму логу: `python -m host.capstone_host --input my_log.txt --plot out.png --csv readings.csv` ([E.5](#appendix-e5)).
+4. Опційно: експорт CSV у mock USB-директорію (`--export-usb`, як у лаб. 3).
+5. У звіті: **діаграма компонентів** з методички, `my_log.txt`, `readings.csv`, графік, пояснення шарів ПЗ. Див. також [examples/lab5/lab5.md](../examples/lab5/lab5.md).
 
 **Запуск:**
 
 ```bash
-python -m host.capstone_host --input sample_log.txt --plot out.png
+python -m host.capstone_host --input my_log.txt --plot out.png --csv readings.csv
 ```
 
 **Питання для самоперевірки:**
 
-1. Перелічіть шари програмного забезпечення від датчика BME280 до CSV-файлу на ПК.
+1. Перелічіть шари програмного забезпечення від датчика BMP180 до CSV-файлу на ПК.
 2. Чим цей вузол схожий на типовий IoT-застосунок на ESP32?
 3. Де в системі «драйвер пристрою», а де — застосунок?
 4. Які інтерфейси лекцій 1, 2 та 6 використані в capstone?
@@ -2822,7 +2823,7 @@ python -m host.capstone_host --input sample_log.txt --plot out.png
 
 1. Мета роботи.
 2. Короткі теоретичні відомості; діаграма компонентів з методички + пояснення шарів ПЗ.
-3. Хід роботи: Serial log, CSV, графік телеметрії (`out.png`).
+3. Хід роботи: Serial log (`I2C: ['0x77']`, `TEMP=...`), CSV (`readings.csv`), графік телеметрії.
 4. Висновки про шари драйверів.
 5. Текст програм ([E.5](#appendix-e5) у розділі «Приклад програмних драйверів» блоку C або додаток до звіту).
 6. Демонстрація на комп’ютері.
@@ -2838,7 +2839,7 @@ python -m host.capstone_host --input sample_log.txt --plot out.png
 ```markdown
 # Приклад звіту — лабораторна робота № 4
 
-> Зразок для **повної оцінки**: адреса I²C, Serial Monitor, скрін Logic Analyzer, порівняння I²C/SPI.
+> Зразок для **повної оцінки**: `I2C scan: ['0x77']`, Serial Monitor (TEMP/PRESS), скрін Logic Analyzer, коротка таблиця I²C / SPI.
 
 ---
 
@@ -2847,19 +2848,19 @@ python -m host.capstone_host --input sample_log.txt --plot out.png
 - Дисципліна: PPID  
 - Лабораторна робота № 4  
 - Студент: **PETRENKO**  
-- Варіант: **1** (датчик BME280, 9600 8N1 для UART — контекст capstone)
+- Варіант: **1**
 
 ---
 
 ## 1. Мета роботи
 
-Опанувати master–slave I²C: адресація, читання температури з I²C-датчика (BMP180 у Wokwi; BME280 на реальному залізі), аналіз SDA/SCL у Logic Analyzer.
+Опанувати шину I²C: адресація датчика, читання температури/тиску, аналіз SDA/SCL у Logic Analyzer.
 
 ## 2. Короткі теоретичні відомості
 
-**I²C:** синхронна шина, лінії **SDA** (дані) та **SCL** (такт). Один master (ESP32), один або кілька slaves (BMP180/BME280).
+**I²C:** синхронна шина, лінії **SDA** (дані) та **SCL** (такт). Master — ESP32; slave — датчик **BMP180**.
 
-**Транзакція:** START → адреса 7 біт + R/W → ACK → дані/регістри → STOP.
+**Транзакція:** START → адреса 7 біт + R/W → ACK → дані → STOP.
 
 **Порівняння з SPI:**
 
@@ -2867,46 +2868,48 @@ python -m host.capstone_host --input sample_log.txt --plot out.png
 |----------|-----|-----|
 | Дроти | 2 (+ GND) | 4+ (MOSI, MISO, SCK, CS) |
 | Адресація | на шині (7 біт) | окремий CS на пристрій |
-| Швидкість | нижча (100–400 kHz типово) | вища, потокові дані |
+| Швидкість | нижча (100–400 kHz типово) | вища |
 
 ## 3. Хід роботи
 
-### 3.1. Параметри варіанту
+### 3.1. Параметри
 
 | Параметр | Значення |
 |----------|----------|
-| Датчик (Wokwi) | BMP180 (`board-bmp180`) |
-| Датчик (варіант курсу) | BME280 |
-| Адреса I²C (Wokwi) | **0x77** |
+| Датчик | BMP180 (`board-bmp180`) |
+| Адреса I²C | **0x77** |
 | Шина | SDA=GPIO21, SCL=GPIO22, 100 kHz |
 
-### 3.2. Wokwi — scan та читання
+### 3.2. Scan і читання (Wokwi)
 
-Після запуску симуляції (`main.py` + `bmp180.py` + `diagram.json`):
+Файли: `main.py`, `diagram.json`, `bmp180.py`. Після **Start**:
 
 ```text
 PPID Lab 4 — I2C sensor
 I2C scan: ['0x77']
 TEMP=24.0 PRESS=1013.2
 TEMP=24.0 PRESS=1013.2
-...
 ```
 
-**[СКРІНШОТ: Wokwi — Serial Monitor з `I2C scan: ['0x77']` та TEMP/PRESS, board-bmp180 на схемі]**
+Під час симуляції змінено слайдери на BMP180 (наприклад temperature ≈ 30 °C) — у Serial з’явились нові `TEMP=` / `PRESS=`.
+
+**[СКРІНШОТ: Wokwi — Serial Monitor з `I2C scan: ['0x77']` та TEMP/PRESS]**
 
 ### 3.3. Logic Analyzer
 
-Під час симуляції Wokwi записав сигнали на **D0 (SDA)** та **D1 (SCL)**. Після Stop завантажено `wokwi-logic.vcd`. Файл відкрито в **PulseView** з декодером **I²C** (див. §1.4 методички, [Wokwi Logic Analyzer Guide](https://docs.wokwi.com/guides/logic-analyzer)). Альтернатива без встановлення — **[Surfer](https://surfer-project.org/)** у браузері ([app.surfer-project.org](https://app.surfer-project.org/)): сирий перегляд SDA/SCL, опис протоколу в тексті звіту. Під час `i2c.scan()` видно START, адресу `0x77`, ACK, STOP.
+Після **Stop** завантажено `wokwi-logic.vcd` (рівні на SDA/SCL, не рядки Serial). Файл відкрито в **PulseView** (декодер I²C) / **Surfer**.
 
-**[СКРІНШОТ: PulseView або Surfer — SDA/SCL (або рядок декодера I²C) під час адресації 0x77]**
+На скріні: у спокої SDA/SCL = 1 (*idle*); пачки переходів — транзакції I²C. У PulseView під час `i2c.scan()` видно START, адресу **0x77**, ACK, STOP; у Surfer — лише хвилі, адресу підтверджено з Serial (`I2C scan: ['0x77']`).
 
-### 3.4. Драйвер BMP180 (`bmp180.py`)
+**[СКРІНШОТ: PulseView або Surfer — SDA/SCL (пачки активності; за наявності декодера — адреса 0x77)]**
 
-Окремий модуль — **драйвер пристрою** (I²C-протокол BMP180). У `main.py` лише `from bmp180 import BMP180` та цикл опитування. Це не Arduino Library Manager — у MicroPython бібліотека = файл `.py` у проєкті Wokwi.
+### 3.4. Драйвер
+
+Модуль `bmp180.py` — драйвер датчика на I²C. У `main.py` — `from bmp180 import BMP180` і цикл опитування (у MicroPython бібліотека = файл `.py` у проєкті).
 
 ## 4. Висновки
 
-На шині виявлено BMP180 за адресою **0x77**. ESP32 — master; датчик — slave. Logic Analyzer підтверджує коректну адресацію. I²C зручніший за SPI за кількістю дротів.
+На шині знайдено датчик за адресою **0x77**. ESP32 — master, BMP180 — slave. Logic Analyzer підтверджує адресацію. I²C зручніший за SPI за кількістю дротів.
 
 ## 5. Додаток — текст програми
 
@@ -2914,7 +2917,7 @@ TEMP=24.0 PRESS=1013.2
 
 ## 6. Демонстрація
 
-На захисті: Wokwi live — `scan`, читання TEMP, показ Logic Analyzer.
+На захисті: Wokwi live — `scan`, `TEMP=...`, показ Logic Analyzer.
 ```
 
 ### Лабораторна робота № 5
@@ -2922,7 +2925,7 @@ TEMP=24.0 PRESS=1013.2
 ```markdown
 # Приклад звіту — лабораторна робота № 5
 
-> Зразок для **повної оцінки**: діаграма компонентів з методички, Serial log, CSV, графік PNG, пояснення шарів ПЗ.
+> Зразок для **повної оцінки**: діаграма компонентів, Serial log (`0x77`, `TEMP=...`), CSV, графік PNG, пояснення шарів ПЗ.
 
 ---
 
@@ -2931,24 +2934,24 @@ TEMP=24.0 PRESS=1013.2
 - Дисципліна: PPID  
 - Лабораторна робота № 5 (capstone)  
 - Студент: **PETRENKO**  
-- Варіант: **1** (BME280, poll 500 ms, 9600 8N1)
+- Варіант: **1** (poll 500 ms, 9600 8N1)
 
 ---
 
 ## 1. Мета роботи
 
-Інтегрувати I²C (датчик), UART (телеметрія) та host-обробку (CSV, графік) у вузол моніторингу — аналог IoT-ланцюжка на embedded + ПК.
+Інтегрувати I²C (датчик), UART (телеметрія `TEMP=...`) та host-обробку (CSV, графік) у вузол моніторингу.
 
 ## 2. Короткі теоретичні відомості та діаграма компонентів
 
 **Шари ПЗ (від датчика до CSV):**
 
 ```text
-BME280 (периферія)
+BMP180 (периферія)
   → HAL I²C (machine.I2C, прошивка)
   → застосунок ESP32 (формування TEMP=...)
   → UART / Serial
-  → pyserial або log-файл
+  → log-файл (my_log.txt)
   → capstone_host (парсинг, CSV, matplotlib)
   → (опційно) mock USB FS
 ```
@@ -2957,7 +2960,7 @@ BME280 (периферія)
 
 ```mermaid
 flowchart LR
-  BME[BME280] -->|I2C| ESP[ESP32]
+  BMP[BMP180] -->|I2C| ESP[ESP32]
   ESP -->|UART TEMP=...| Log[Serial log]
   Log --> Host[capstone_host]
   Host --> CSV[CSV]
@@ -2966,55 +2969,54 @@ flowchart LR
 
 ## 3. Хід роботи
 
-### 3.1. Параметри варіанту
+### 3.1. Параметри
 
 | Параметр | Значення |
 |----------|----------|
-| Датчик | BME280 (0x76) |
-| Інтервал опитування | 500 ms |
+| Датчик (Wokwi) | BMP180 (`board-bmp180`), адреса **0x77** |
+| Інтервал опитування | 500 ms (`INTERVAL_MS`) |
 | Формат телеметрії | `TEMP=<value>\r\n` |
 | UART | 9600 8N1 |
 
 ### 3.2. Embedded (Wokwi)
 
-Запущено `wokwi/lab05-capstone/`. Збережено Serial Monitor у `my_log.txt`:
+Файли: `main.py`, `diagram.json`, `bmp180.py`. Збережено Serial Monitor у `my_log.txt`:
 
 ```text
 PPID Lab 5 — Capstone node
-I2C: ['0x76']
+I2C: ['0x77']
 TEMP=22.1
 TEMP=22.3
 TEMP=22.5
 TEMP=22.4
 TEMP=22.8
-...
 ```
 
-**[СКРІНШОТ: Wokwi capstone — Serial Monitor з рядками TEMP=..., BME280 на схемі]**
+**[СКРІНШОТ: Wokwi capstone — Serial Monitor з рядками TEMP=...]**
 
 ### 3.3. Host — парсинг, CSV, графік
 
 ```bash
-python3 -m host.capstone_host --input sample_log.txt --plot capstone_plot.png
+python3 -m host.capstone_host --input my_log.txt --plot capstone_plot.png --csv readings.csv
 ```
 
 Вивід:
 
 ```text
-Знайдено зчитувань: 10
+Знайдено зчитувань: 5
+CSV: readings.csv
 Графік: capstone_plot.png
 ```
 
 **[СКРІНШОТ: графік matplotlib — вісь X: номер зчитування, вісь Y: температура °C; файл `capstone_plot.png`]**
 
-Фрагмент CSV (генерується поруч із графіком):
+Фрагмент `readings.csv`:
 
 ```text
-index,temperature_c
-1,22.1
-2,22.3
-3,22.5
-...
+sample,temp_c
+2,22.1
+3,22.3
+4,22.5
 ```
 
 **[СКРІНШОТ або фрагмент: відкритий CSV у редакторі / таблиця в звіті]**
@@ -3022,14 +3024,14 @@ index,temperature_c
 ### 3.4. Опційно — export mock USB
 
 ```bash
-python3 -m host.capstone_host --input sample_log.txt --plot capstone_plot.png --export-usb
+python3 -m host.capstone_host --input my_log.txt --plot capstone_plot.png --csv readings.csv --export-usb
 ```
 
 CSV копіюється у temp-директорію mock Mass Storage (аналог лаб. 3).
 
 ## 4. Висновки
 
-Capstone об’єднує інтерфейси лекцій 1 (UART), 2 (модель обміну) та 6 (I²C). «Драйвер пристрою» для BME280 — у прошивці (`machine.I2C`); на ПК — лише парсинг текстового протоколу та візуалізація. Узгоджений формат `TEMP=...` між ESP32 і `capstone_host` критичний для коректного CSV.
+Capstone об’єднує UART (лаб. 1–2) та I²C (лаб. 4). Драйвер датчика — у прошивці (`bmp180.py` / `machine.I2C`); на ПК — лише парсинг `TEMP=...` і візуалізація. Узгоджений формат рядка між ESP32 і `capstone_host` потрібен для коректного CSV.
 
 ## 5. Додаток — текст програм
 
@@ -3277,22 +3279,29 @@ def main(argv: list[str] | None = None) -> int:
         "--input",
         type=Path,
         default=Path(__file__).resolve().parent.parent / "sample_log.txt",
+        help="Serial log with TEMP=... lines (default: sample_log.txt in repo)",
     )
     parser.add_argument("--plot", type=Path, default=Path("capstone_plot.png"))
+    parser.add_argument(
+        "--csv",
+        type=Path,
+        default=Path("readings.csv"),
+        help="Write parsed temperatures to this CSV",
+    )
     parser.add_argument("--export-usb", action="store_true")
     args = parser.parse_args(argv)
 
     readings = parse_log_file(args.input)
     print(f"Знайдено зчитувань: {len(readings)}")
 
-    with tempfile.TemporaryDirectory(prefix="ppid_capstone_") as tmp:
-        csv_path = Path(tmp) / "readings.csv"
-        write_csv(readings, csv_path)
-        plot_readings(readings, args.plot)
-        print(f"Графік: {args.plot}")
-        if args.export_usb:
-            usb = Path(tmp) / "mock_usb"
-            exported = export_to_mock_usb(csv_path, usb)
+    write_csv(readings, args.csv)
+    plot_readings(readings, args.plot)
+    print(f"CSV: {args.csv}")
+    print(f"Графік: {args.plot}")
+
+    if args.export_usb:
+        with tempfile.TemporaryDirectory(prefix="ppid_usb_export_") as tmp:
+            exported = export_to_mock_usb(args.csv, Path(tmp) / "mock_usb")
             print(f"Експорт на mock USB: {exported}")
 
     return 0
@@ -3380,7 +3389,7 @@ while True:
 
 ```text
 PPID Lab 5 — Capstone node
-I2C: ['0x76']
+I2C: ['0x77']
 TEMP=22.1
 TEMP=22.3
 TEMP=22.5

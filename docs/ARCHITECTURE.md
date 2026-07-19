@@ -34,7 +34,7 @@ Real USB device drivers live in the OS kernel; this practicum does not implement
 ## Lab 5: capstone
 
 ```
-BME280 → I2C → ESP32 firmware → UART → host parser → CSV + matplotlib → optional mock USB export
+BMP180 (Wokwi) → I2C → ESP32 firmware → UART → host parser → CSV + matplotlib → optional mock USB export
 ```
 
 See [diagrams/capstone-components.md](diagrams/capstone-components.md).

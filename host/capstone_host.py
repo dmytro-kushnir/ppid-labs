@@ -72,22 +72,29 @@ def main(argv: list[str] | None = None) -> int:
         "--input",
         type=Path,
         default=Path(__file__).resolve().parent.parent / "sample_log.txt",
+        help="Serial log with TEMP=... lines (default: sample_log.txt in repo)",
     )
     parser.add_argument("--plot", type=Path, default=Path("capstone_plot.png"))
+    parser.add_argument(
+        "--csv",
+        type=Path,
+        default=Path("readings.csv"),
+        help="Write parsed temperatures to this CSV",
+    )
     parser.add_argument("--export-usb", action="store_true")
     args = parser.parse_args(argv)
 
     readings = parse_log_file(args.input)
     print(f"Знайдено зчитувань: {len(readings)}")
 
-    with tempfile.TemporaryDirectory(prefix="ppid_capstone_") as tmp:
-        csv_path = Path(tmp) / "readings.csv"
-        write_csv(readings, csv_path)
-        plot_readings(readings, args.plot)
-        print(f"Графік: {args.plot}")
-        if args.export_usb:
-            usb = Path(tmp) / "mock_usb"
-            exported = export_to_mock_usb(csv_path, usb)
+    write_csv(readings, args.csv)
+    plot_readings(readings, args.plot)
+    print(f"CSV: {args.csv}")
+    print(f"Графік: {args.plot}")
+
+    if args.export_usb:
+        with tempfile.TemporaryDirectory(prefix="ppid_usb_export_") as tmp:
+            exported = export_to_mock_usb(args.csv, Path(tmp) / "mock_usb")
             print(f"Експорт на mock USB: {exported}")
 
     return 0
