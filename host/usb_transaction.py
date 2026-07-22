@@ -23,8 +23,11 @@ class TokenPacket:
     endp: int
 
     def to_bytes(self) -> bytes:
-        crc = ((self.addr & 0x7F) | ((self.endp & 0x0F) << 7)) & 0xFFFF
-        return bytes([self.pid, crc & 0xFF, (crc >> 8) & 0xFF])
+        # Packed 11-bit ADDR (7) + ENDP (4) field. A real USB token packet also
+        # appends a 5-bit CRC5 over this field; omitted here as an educational
+        # simplification (see §теорія USB).
+        addr_endp = ((self.addr & 0x7F) | ((self.endp & 0x0F) << 7)) & 0xFFFF
+        return bytes([self.pid, addr_endp & 0xFF, (addr_endp >> 8) & 0xFF])
 
 
 @dataclass
@@ -49,7 +52,11 @@ class HandshakePacket:
 
 
 def _crc16(data: bytes) -> int:
-    """USB CRC-16 (polynomial 0x8005), bit-reversed input."""
+    """Simplified educational CRC-16 (0x8005, reflected), used as the DATA
+    packet checksum. NOTE: a real USB CRC-16 also inverts the final remainder
+    (``^ 0xFFFF``); that step is intentionally omitted here so the produced
+    bytes stay stable for the lab example — this is not a wire-accurate USB CRC.
+    """
     crc = 0xFFFF
     for byte in data:
         crc ^= byte

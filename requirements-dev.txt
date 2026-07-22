@@ -1,1 +1,3 @@
-pytest>=8.0
+# Dev/test extras. pytest is also listed in requirements.txt (used by the
+# optional §2-3 module checks); pinned identically here to avoid conflicts.
+pytest>=9.1

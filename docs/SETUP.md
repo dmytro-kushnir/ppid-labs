@@ -13,7 +13,7 @@ python3 -m pytest tests/ -v
 
 ## Variants
 
-Assignment parameters (baud, format, sensor, poll interval) are in [fixtures/variants.json](../fixtures/variants.json). **Message** = student surname in **uppercase Latin letters A–Z** (e.g. `IVANOV`); full rules in [lab-praktikum-2026.md](lab-praktikum-2026.md) §1.5.
+Assignment parameters (baud, format, sensor, poll interval) are in [fixtures/variants.json](../fixtures/variants.json). **Message** = student surname in **uppercase Latin letters A–Z** (e.g. `IVANOV`); full rules in [lab-praktikum-2026.md](lab-praktikum-2026.md) §1.6.
 
 ## Wokwi (labs 4, 5)
 

@@ -12,7 +12,7 @@ SYNC_RAW = "01010100"  # KJKJKJKK before NRZI (educational simplification)
 
 
 def char_to_bits(ch: str) -> str:
-    return format(ord(ch), "08b")
+    return format(ord(ch) & 0xFF, "08b")
 
 
 def message_to_bits(message: str) -> str:
@@ -115,7 +115,7 @@ def plot_nrzi_char(message: str, index: int, show: bool = True) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="USB NRZI plot")
-    parser.add_argument("--message", default="АБ")
+    parser.add_argument("--message", default="AB")
     parser.add_argument("--char-index", type=int, default=None)
     parser.add_argument("--no-show", action="store_true")
     args = parser.parse_args(argv)

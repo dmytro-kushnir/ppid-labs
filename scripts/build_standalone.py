@@ -4,17 +4,25 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
 INCLUDE_RE = re.compile(r"^\{\{include:([^}]+)\}\}\s*$")
+VARIANTS_TABLE_RE = re.compile(r"^\{\{variants_table:([^}]+)\}\}\s*$")
 
 LANG_BY_SUFFIX = {
     ".py": "python",
     ".json": "json",
     ".txt": "text",
     ".md": "markdown",
+}
+
+SENSOR_LABELS = {
+    "OLED": "I²C OLED",
+    "BME280": "BME280",
 }
 
 
@@ -34,14 +42,48 @@ def render_include(root: Path, rel_path: str) -> str:
     return f"{opening}\n{content}```\n"
 
 
+def sensor_label(sensor: str) -> str:
+    return SENSOR_LABELS.get(sensor, sensor)
+
+
+def render_variants_table(root: Path, rel_path: str) -> str:
+    path = root / rel_path.strip()
+    if not path.is_file():
+        raise FileNotFoundError(f"Variants JSON not found: {rel_path} (expected {path})")
+    payload: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    variants = payload.get("variants")
+    if not isinstance(variants, list) or not variants:
+        raise ValueError(f"No variants[] in {rel_path}")
+
+    lines = [
+        "| № | Baudrate | Формат | Датчик (лаб. 4) | Інтервал, мс (лаб. 5) | Mock USB (лаб. 3) |",
+        "|---|----------|--------|-----------------|----------------------|-------------------|",
+    ]
+    for row in variants:
+        lines.append(
+            "| {id} | {baud} | {format} | {sensor} | {poll} | {usb} |".format(
+                id=row["id"],
+                baud=row["baud"],
+                format=row["format"],
+                sensor=sensor_label(str(row["sensor"])),
+                poll=row["poll_ms"],
+                usb=row["mock_usb_name"],
+            )
+        )
+    return "\n".join(lines) + "\n"
+
+
 def build(template_path: Path, output_path: Path, root: Path) -> str:
     lines = template_path.read_text(encoding="utf-8").splitlines(keepends=True)
     out: list[str] = []
     for line in lines:
         stripped = line.strip()
-        match = INCLUDE_RE.match(stripped)
-        if match:
-            out.append(render_include(root, match.group(1)))
+        include_match = INCLUDE_RE.match(stripped)
+        variants_match = VARIANTS_TABLE_RE.match(stripped)
+        if include_match:
+            out.append(render_include(root, include_match.group(1)))
+        elif variants_match:
+            out.append(render_variants_table(root, variants_match.group(1)))
         else:
             out.append(line)
     text = "".join(out)

@@ -11,7 +11,9 @@ from matplotlib.figure import Figure
 
 ParityMode = Literal["N", "E", "O"]
 
-# Inverted line logic: mark (1) -> low, space (0) -> high (simplified)
+# TTL logic levels: idle/mark (1) -> high, start/space (0) -> low.
+# (RS-232 uses inverted voltage on the wire; see §теорія. Data bits are drawn
+# MSB-first for readability — the physical line order is LSB-first.)
 
 
 @dataclass(frozen=True)
@@ -86,7 +88,7 @@ def frames_to_signal(
 
     for frame in frames:
         for bit in frame:
-            level = 0 if bit == "1" else 1
+            level = 1 if bit == "1" else 0
             times.extend([t, t + bit_time])
             levels.extend([level, level])
             t += bit_time

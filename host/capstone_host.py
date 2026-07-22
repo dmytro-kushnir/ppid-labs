@@ -10,15 +10,21 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-TEMP_RE = re.compile(r"TEMP=([\d.]+)")
+TEMP_RE = re.compile(r"TEMP=(-?\d+(?:\.\d+)?)")
 
 
 def parse_log_lines(lines: list[str]) -> list[tuple[int, float]]:
     readings: list[tuple[int, float]] = []
     for i, line in enumerate(lines):
         match = TEMP_RE.search(line)
-        if match:
-            readings.append((i, float(match.group(1))))
+        if not match:
+            continue
+        try:
+            value = float(match.group(1))
+        except ValueError:
+            # Skip malformed readings (e.g. noisy serial line) instead of crashing.
+            continue
+        readings.append((i, value))
     return readings
 
 

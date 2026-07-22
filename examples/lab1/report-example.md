@@ -80,7 +80,7 @@ python3 -m host.uart_device_emu --port /tmp/comB   # термінал 1
 RX text: PETRENKO
 RX bytes (9): 50 45 54 52 45 4e 4b 4f 0d
 TX ACK: ACK:PETRENKO
-TX bytes (14): 41 43 4b 3a 50 45 54 52 45 4e 4b 4f 0a
+TX bytes (13): 41 43 4b 3a 50 45 54 52 45 4e 4b 4f 0a
 Verify: OK
 --------------
 ```

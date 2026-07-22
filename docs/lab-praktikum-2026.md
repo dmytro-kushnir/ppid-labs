@@ -6,7 +6,7 @@
 **Спеціалізація:** Інтерфейси та драйвери периферійних пристроїв  
 **Видання:** 2026 (**5 лабораторних робіт**)
 
-> **Про цей документ.** Методичний посібник: **Вступ → загальні положення → тематичні блоки** (теорія → лабораторні → приклад виконання → приклад програм). Усі інструкції, таблиці варіантів, зразки звітів, **повні лістинги програм** у розділах «Приклад програмних драйверів» кожного блоку, схеми Wokwi та питання для самоперевірки зібрані **в одному файлі**. Окремі markdown-файли чи посилання на репозиторій **не потрібні**. Для практичної частини потрібні: **Python 3.11+**, пакети з розділу 1.2 та браузер з доступом до **https://wokwi.com** (лабораторні 1, 4, 5).
+> **Про цей документ.** Методичний посібник: **Вступ → загальні положення → тематичні блоки** (теорія → лабораторні → приклад виконання → приклад програм). Усі інструкції, таблиці варіантів, зразки звітів, **повні лістинги програм** у розділах «Приклад програмних драйверів» кожного блоку, схеми Wokwi та питання для самоперевірки зібрані **в одному файлі**. Окремі markdown-файли чи посилання на репозиторій **не потрібні**. Для практичної частини потрібні: **Python 3.11+**, пакети з розділу 1.2 та браузер з доступом до **https://wokwi.com** (лабораторні 4, 5).
 
 ---
 
@@ -41,7 +41,7 @@
   - [1.1. Необхідне програмне забезпечення](#11-необхідне-програмне-забезпечення)
   - [1.2. Встановлення Python та пакетів](#12-встановлення-python-та-пакетів)
   - [1.3. Оформлення звіту (2026)](#13-оформлення-звіту-2026)
-  - [1.4. Симулятор Wokwi](#14-симулятор-wokwi-лаб-1-4-5)
+  - [1.4. Симулятор Wokwi](#14-симулятор-wokwi-лаб-4-5)
   - [1.5. Послідовний порт host](#15-послідовний-порт-host---port-лаб-1)
   - [1.6. Повідомлення (прізвище)](#16-повідомлення-прізвище-та-кодування)
   - [1.7. Рівні програмного забезпечення](#17-рівні-програмного-забезпечення)
@@ -108,7 +108,7 @@ pip install pyserial matplotlib pytest
 python3 -m pytest tests/ -v        # опційно, якщо скопійовано каталог tests/ з репозиторію
 ```
 
-Лабораторні **2** і **3** працюють **повністю офлайн**. Лабораторні **1, 4, 5** потребують інтернету для Wokwi.
+Лабораторні **1, 2, 3** працюють **повністю офлайн** (лаб. 1 — host + `uart_device_emu`). Лабораторні **4, 5** потребують інтернету для Wokwi.
 
 ## 1.3. Оформлення звіту (2026)
 
@@ -217,7 +217,7 @@ Windows: `--port COM6` / `--port COM5`. Див. [SETUP § Virtual COM](SETUP.md#
 | Подвійне прізвище | `SHEVCHENKO-PETRENKO` |
 | Прізвище < 4 символів | додати ім’я без пробілу — узгодити з викладачем |
 
-**Лаб. 4 (OLED):** вивести **те саме прізвище** на дисплей.
+**Лаб. 4 (OLED, варіанти 4, 6, 9):** замість датчика — дисплей **SSD1306** (I²C **0x3C**). Проєкт `lab04-i2c-oled/` (`main.py` + `diagram.json`) + драйвер `ssd1306.py`; вивести **те саме прізвище** на дисплей (`SURNAME` у `main.py`).
 
 Кодування: **ASCII / UTF-8** (латиниця); `cp1251` також підходить для A–Z. Завершення пакета UART — символ `\r`. **Не використовуйте кирилицю** у повідомленні лаб. 1–3.
 
@@ -289,8 +289,8 @@ Windows: `--port COM6` / `--port COM5`. Див. [SETUP § Virtual COM](SETUP.md#
 
 Номер варіанта призначає викладач. **Прізвище** — за розділом 1.6 (однакове правило для всіх).
 
-| № | Бод | Формат | Датчик (лаб. 4) | Інтервал, мс (лаб. 5) | Mock USB (лаб. 3) |
-|---|-----|--------|-----------------|----------------------|-------------------|
+| № | Baudrate | Формат | Датчик (лаб. 4) | Інтервал, мс (лаб. 5) | Mock USB (лаб. 3) |
+|---|----------|--------|-----------------|----------------------|-------------------|
 | 1 | 9600 | 8N1 | BME280 | 500 | SanDisk Cruzer (Mass Storage) |
 | 2 | 9600 | 8N1 | BME280 | 500 | Espressif USB JTAG/serial (CDC) |
 | 3 | 19200 | 8N1 | BME280 | 1000 | Logitech USB Receiver |
@@ -698,7 +698,7 @@ python3 -m host.uart_device_emu --port /tmp/comB   # термінал 1
 RX text: PETRENKO
 RX bytes (9): 50 45 54 52 45 4e 4b 4f 0d
 TX ACK: ACK:PETRENKO
-TX bytes (14): 41 43 4b 3a 50 45 54 52 45 4e 4b 4f 0a
+TX bytes (13): 41 43 4b 3a 50 45 54 52 45 4e 4b 4f 0a
 Verify: OK
 --------------
 ```
@@ -1269,7 +1269,9 @@ from matplotlib.figure import Figure
 
 ParityMode = Literal["N", "E", "O"]
 
-# Inverted line logic: mark (1) -> low, space (0) -> high (simplified)
+# TTL logic levels: idle/mark (1) -> high, start/space (0) -> low.
+# (RS-232 uses inverted voltage on the wire; see §теорія. Data bits are drawn
+# MSB-first for readability — the physical line order is LSB-first.)
 
 
 @dataclass(frozen=True)
@@ -1344,7 +1346,7 @@ def frames_to_signal(
 
     for frame in frames:
         for bit in frame:
-            level = 0 if bit == "1" else 1
+            level = 1 if bit == "1" else 0
             times.extend([t, t + bit_time])
             levels.extend([level, level])
             t += bit_time
@@ -1475,7 +1477,7 @@ SYNC_RAW = "01010100"  # KJKJKJKK before NRZI (educational simplification)
 
 
 def char_to_bits(ch: str) -> str:
-    return format(ord(ch), "08b")
+    return format(ord(ch) & 0xFF, "08b")
 
 
 def message_to_bits(message: str) -> str:
@@ -1578,7 +1580,7 @@ def plot_nrzi_char(message: str, index: int, show: bool = True) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="USB NRZI plot")
-    parser.add_argument("--message", default="АБ")
+    parser.add_argument("--message", default="AB")
     parser.add_argument("--char-index", type=int, default=None)
     parser.add_argument("--no-show", action="store_true")
     args = parser.parse_args(argv)
@@ -2284,8 +2286,11 @@ class TokenPacket:
     endp: int
 
     def to_bytes(self) -> bytes:
-        crc = ((self.addr & 0x7F) | ((self.endp & 0x0F) << 7)) & 0xFFFF
-        return bytes([self.pid, crc & 0xFF, (crc >> 8) & 0xFF])
+        # Packed 11-bit ADDR (7) + ENDP (4) field. A real USB token packet also
+        # appends a 5-bit CRC5 over this field; omitted here as an educational
+        # simplification (see §теорія USB).
+        addr_endp = ((self.addr & 0x7F) | ((self.endp & 0x0F) << 7)) & 0xFFFF
+        return bytes([self.pid, addr_endp & 0xFF, (addr_endp >> 8) & 0xFF])
 
 
 @dataclass
@@ -2310,7 +2315,11 @@ class HandshakePacket:
 
 
 def _crc16(data: bytes) -> int:
-    """USB CRC-16 (polynomial 0x8005), bit-reversed input."""
+    """Simplified educational CRC-16 (0x8005, reflected), used as the DATA
+    packet checksum. NOTE: a real USB CRC-16 also inverts the final remainder
+    (``^ 0xFFFF``); that step is intentionally omitted here so the produced
+    bytes stay stable for the lab example — this is not a wire-accurate USB CRC.
+    """
     crc = 0xFFFF
     for byte in data:
         crc ^= byte
@@ -2688,7 +2697,7 @@ if __name__ == "__main__":
 
 **I²C (EN):** *synchronous, multi-master/multi-slave, single-ended, serial communication bus* (open-drain SDA/SCL).
 
-**I²C** (*Inter-Integrated Circuit*): лінії **SDA** (дані), **SCL** (такт); **master** ініціює; **7-бітна адреса** (у лаб. 4 Wokwi BMP180: **0x77**; OLED часто 0x27); транзакція START → адреса + R/W → ACK → дані → STOP; **open-drain** + **pull-up**. У Wokwi підтягування вбудоване.
+**I²C** (*Inter-Integrated Circuit*): лінії **SDA** (дані), **SCL** (такт); **master** ініціює; **7-бітна адреса** (у лаб. 4 Wokwi BMP180: **0x77**; SSD1306 OLED зазвичай 0x3C); транзакція START → адреса + R/W → ACK → дані → STOP; **open-drain** + **pull-up**. У Wokwi підтягування вбудоване.
 
 **SPI** (*Serial Peripheral Interface*): *synchronous, full-duplex, serial* — окремі **MOSI**, **MISO**, **SCK**, **CS**; вища швидкість; немає адресації на шині — окремий **CS** (chip select) на пристрій.
 
@@ -2714,7 +2723,7 @@ if __name__ == "__main__":
 
 **Мета роботи:** опанування студентом принципів роботи синхронної двопровідної шини I²C (інтерфейс «інтегральної схеми»), адресації пристроїв master–slave та читання даних з периферійного датчика на прикладі платформи ESP32 у симуляторі Wokwi.
 
-**Завдання на роботу.** Тип датчика — з розділу 1.11. Для OLED виведіть **прізвище** на дисплей (розділ 1.6).
+**Завдання на роботу.** Тип датчика — з розділу 1.11. Для варіантів OLED (4, 6, 9) — проєкт `lab04-i2c-oled/` (SSD1306, 0x3C): виведіть **прізвище** на дисплей (розділ 1.6).
 
 **Короткі теоретичні відомості.** Див. [теоретичний розділ блоку C](#теоретичні-відомості-для-виконання-лабораторних-робіт-4–5).
 
@@ -3217,15 +3226,21 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-TEMP_RE = re.compile(r"TEMP=([\d.]+)")
+TEMP_RE = re.compile(r"TEMP=(-?\d+(?:\.\d+)?)")
 
 
 def parse_log_lines(lines: list[str]) -> list[tuple[int, float]]:
     readings: list[tuple[int, float]] = []
     for i, line in enumerate(lines):
         match = TEMP_RE.search(line)
-        if match:
-            readings.append((i, float(match.group(1))))
+        if not match:
+            continue
+        try:
+            value = float(match.group(1))
+        except ValueError:
+            # Skip malformed readings (e.g. noisy serial line) instead of crashing.
+            continue
+        readings.append((i, value))
     return readings
 
 
